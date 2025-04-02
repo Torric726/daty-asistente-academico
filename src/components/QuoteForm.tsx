@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
   Form, 
@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { CurrencyCode, currencies, convertPrice, formatCurrency } from "@/services/currencyService";
 
 // Servicios disponibles para selección
 const services = [
@@ -59,16 +60,45 @@ const formSchema = z.object({
   servicio: z.string({ required_error: "Seleccione un servicio" }),
   dias: z.coerce.number().min(1, { message: "Debe ser al menos 1 día" }).max(60, { message: "Máximo 60 días" }),
   descripcion: z.string().min(20, { message: "La descripción debe tener al menos 20 caracteres" }),
+  moneda: z.string().default("USD"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+// Función para guardar cotizaciones en localStorage
+const saveQuote = (quoteData: {
+  id: string;
+  timestamp: number;
+  nombre: string;
+  email: string;
+  telefono: string;
+  servicio: string;
+  servicioNombre: string;
+  dias: number;
+  descripcion: string;
+  precio: number;
+  moneda: CurrencyCode;
+  estado: string;
+}) => {
+  // Obtener cotizaciones existentes o inicializar array vacío
+  const savedQuotes = localStorage.getItem('datyQuotes');
+  const quotes = savedQuotes ? JSON.parse(savedQuotes) : [];
+  
+  // Agregar nueva cotización
+  quotes.push(quoteData);
+  
+  // Guardar en localStorage
+  localStorage.setItem('datyQuotes', JSON.stringify(quotes));
+};
 
 const QuoteForm = () => {
   const [searchParams] = useSearchParams();
   const preselectedService = searchParams.get("service");
   
   const [price, setPrice] = useState<number | null>(null);
+  const [convertedPrice, setConvertedPrice] = useState<number | null>(null);
   const [urgent, setUrgent] = useState<boolean>(false);
+  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>("USD");
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -80,6 +110,7 @@ const QuoteForm = () => {
       servicio: preselectedService || "",
       dias: 7,
       descripcion: "",
+      moneda: "USD",
     },
   });
 
@@ -115,28 +146,57 @@ const QuoteForm = () => {
   // Actualizar precio cuando cambia el servicio o los días
   const watchService = form.watch("servicio");
   const watchDias = form.watch("dias");
+  const watchMoneda = form.watch("moneda");
 
   const onSubmit = (values: FormValues) => {
-    // Aquí se procesaría el formulario, por ahora mostramos un toast
-    toast({
-      title: "Cotización enviada",
-      description: "Te contactaremos pronto con los detalles de tu cotización.",
+    if (!price) return;
+    
+    // Generar ID único para la cotización
+    const quoteId = `DATY-${Math.floor(1000 + Math.random() * 9000)}`;
+    
+    // Encontrar el nombre del servicio seleccionado
+    const selectedService = services.find(s => s.id.toString() === values.servicio);
+    const serviceName = selectedService ? selectedService.name : "Servicio desconocido";
+    
+    // Guardar cotización
+    saveQuote({
+      id: quoteId,
+      timestamp: Date.now(),
+      nombre: values.nombre,
+      email: values.email,
+      telefono: values.telefono,
+      servicio: values.servicio,
+      servicioNombre: serviceName,
+      dias: values.dias,
+      descripcion: values.descripcion,
+      precio: price,
+      moneda: values.moneda as CurrencyCode,
+      estado: "Pendiente"
     });
 
-    // Simular generación de ID
-    const jobId = `DATY-${Math.floor(1000 + Math.random() * 9000)}`;
-    
+    // Mostrar notificación
+    toast({
+      title: "Cotización enviada",
+      description: `Se ha registrado tu cotización con ID: ${quoteId}. Te contactaremos pronto con los detalles.`,
+    });
+
     console.log("Formulario enviado:", values);
-    console.log("ID de trabajo generado:", jobId);
+    console.log("ID de trabajo generado:", quoteId);
   };
 
-  // Actualizar precio cada vez que cambian servicio o días
-  useState(() => {
+  // Actualizar precio cada vez que cambian servicio, días o moneda
+  useEffect(() => {
     if (watchService && watchDias) {
       const priceDetails = calculatePrice(watchService, watchDias);
-      setPrice(priceDetails ? priceDetails.discounted : null);
+      const newPrice = priceDetails ? priceDetails.discounted : null;
+      setPrice(newPrice);
+      
+      if (newPrice) {
+        const converted = convertPrice(newPrice, watchMoneda as CurrencyCode);
+        setConvertedPrice(converted);
+      }
     }
-  });
+  }, [watchService, watchDias, watchMoneda]);
 
   return (
     <Form {...form}>
@@ -193,13 +253,11 @@ const QuoteForm = () => {
                 <Select 
                   onValueChange={(value) => {
                     field.onChange(value);
-                    const priceDetails = calculatePrice(value, watchDias);
-                    setPrice(priceDetails ? priceDetails.discounted : null);
                   }} 
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-background">
                       <SelectValue placeholder="Selecciona un servicio" />
                     </SelectTrigger>
                   </FormControl>
@@ -227,17 +285,40 @@ const QuoteForm = () => {
                     type="number" 
                     min={1}
                     max={60}
-                    onChange={(e) => {
-                      field.onChange(e);
-                      const value = parseInt(e.target.value);
-                      if (value && watchService) {
-                        const priceDetails = calculatePrice(watchService, value);
-                        setPrice(priceDetails ? priceDetails.discounted : null);
-                      }
-                    }}
                     {...field}
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="moneda"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Moneda</FormLabel>
+                <Select 
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    setSelectedCurrency(value as CurrencyCode);
+                  }} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder="Selecciona una moneda" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {currencies.map((currency) => (
+                      <SelectItem key={currency.code} value={currency.code}>
+                        {currency.name} ({currency.symbol})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -270,10 +351,17 @@ const QuoteForm = () => {
           </div>
         </div>
 
-        {price && (
+        {convertedPrice && (
           <div className="bg-daty-50 p-4 rounded-md border border-daty-100">
             <h3 className="font-medium text-lg mb-1">Tu cotización:</h3>
-            <p className="text-2xl font-bold text-daty-700">${price.toFixed(2)} <span className="text-sm font-normal text-muted-foreground">(incluye 20% de descuento)</span></p>
+            <p className="text-2xl font-bold text-daty-700">
+              {formatCurrency(convertedPrice, selectedCurrency)} <span className="text-sm font-normal text-muted-foreground">(incluye 20% de descuento)</span>
+            </p>
+            {selectedCurrency !== "USD" && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Equivalente a ${price?.toFixed(2)} USD
+              </p>
+            )}
           </div>
         )}
 
