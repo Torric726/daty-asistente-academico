@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
@@ -24,32 +23,32 @@ const services = [
   {
     id: 1,
     name: "ANÁLISIS DE DATOS",
-    price: 50,
+    price: 15,
   },
   {
     id: 2,
     name: "TAREAS Y TRABAJOS DIGITALES",
-    price: 40,
+    price: 9,
   },
   {
     id: 3,
     name: "PROYECTOS Y ESTRATEGIAS",
-    price: 60,
+    price: 10,
   },
   {
     id: 4,
     name: "INVESTIGACIONES Y TESINAS",
-    price: 70,
+    price: 15,
   },
   {
     id: 5,
     name: "VISUALIZADORES Y REPORTES",
-    price: 55,
+    price: 9,
   },
   {
     id: 6,
     name: "INFORMES Y DOCUMENTACIÓN",
-    price: 45,
+    price: 7,
   }
 ];
 
