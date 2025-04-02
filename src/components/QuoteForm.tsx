@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
@@ -17,6 +18,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CurrencyCode, currencies, convertPrice, formatCurrency } from "@/services/currencyService";
+import { saveQuote, getLocalQuotes } from "@/services/quoteService";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Servicios disponibles para selección
 const services = [
@@ -64,32 +67,6 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// Función para guardar cotizaciones en localStorage
-const saveQuote = (quoteData: {
-  id: string;
-  timestamp: number;
-  nombre: string;
-  email: string;
-  telefono: string;
-  servicio: string;
-  servicioNombre: string;
-  dias: number;
-  descripcion: string;
-  precio: number;
-  moneda: CurrencyCode;
-  estado: string;
-}) => {
-  // Obtener cotizaciones existentes o inicializar array vacío
-  const savedQuotes = localStorage.getItem('datyQuotes');
-  const quotes = savedQuotes ? JSON.parse(savedQuotes) : [];
-  
-  // Agregar nueva cotización
-  quotes.push(quoteData);
-  
-  // Guardar en localStorage
-  localStorage.setItem('datyQuotes', JSON.stringify(quotes));
-};
-
 const QuoteForm = () => {
   const [searchParams] = useSearchParams();
   const preselectedService = searchParams.get("service");
@@ -99,12 +76,13 @@ const QuoteForm = () => {
   const [urgent, setUrgent] = useState<boolean>(false);
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>("USD");
   const { toast } = useToast();
+  const { currentUser } = useAuth();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nombre: "",
-      email: "",
+      nombre: currentUser?.displayName || "",
+      email: currentUser?.email || "",
       telefono: "",
       servicio: preselectedService || "",
       dias: 7,
@@ -112,6 +90,14 @@ const QuoteForm = () => {
       moneda: "USD",
     },
   });
+
+  useEffect(() => {
+    // Actualizar valores del formulario cuando el usuario inicia sesión
+    if (currentUser) {
+      form.setValue('nombre', currentUser.displayName || '');
+      form.setValue('email', currentUser.email || '');
+    }
+  }, [currentUser, form]);
 
   // Calcular precio cuando cambian los valores relevantes
   const calculatePrice = (serviceId: string, days: number) => {
@@ -147,7 +133,7 @@ const QuoteForm = () => {
   const watchDias = form.watch("dias");
   const watchMoneda = form.watch("moneda");
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     if (!price) return;
     
     // Generar ID único para la cotización
@@ -157,8 +143,7 @@ const QuoteForm = () => {
     const selectedService = services.find(s => s.id.toString() === values.servicio);
     const serviceName = selectedService ? selectedService.name : "Servicio desconocido";
     
-    // Guardar cotización
-    saveQuote({
+    const quoteData = {
       id: quoteId,
       timestamp: Date.now(),
       nombre: values.nombre,
@@ -170,17 +155,49 @@ const QuoteForm = () => {
       descripcion: values.descripcion,
       precio: price,
       moneda: values.moneda as CurrencyCode,
-      estado: "Pendiente"
-    });
+      estado: "Pendiente",
+      userId: currentUser?.uid || null,
+      photoURL: currentUser?.photoURL || null
+    };
 
-    // Mostrar notificación
-    toast({
-      title: "Cotización enviada",
-      description: `Se ha registrado tu cotización con ID: ${quoteId}. Te contactaremos pronto con los detalles.`,
-    });
+    try {
+      // Guardar en Firestore si el usuario está autenticado
+      if (currentUser) {
+        await saveQuote(quoteData);
+      } else {
+        // Fallback a localStorage si no está autenticado
+        const savedQuotes = getLocalQuotes();
+        savedQuotes.push(quoteData);
+        localStorage.setItem('datyQuotes', JSON.stringify(savedQuotes));
+      }
 
-    console.log("Formulario enviado:", values);
-    console.log("ID de trabajo generado:", quoteId);
+      // Mostrar notificación
+      toast({
+        title: "Cotización enviada",
+        description: `Se ha registrado tu cotización con ID: ${quoteId}. Te contactaremos pronto con los detalles.`,
+      });
+
+      // Limpiar el formulario
+      form.reset({
+        nombre: currentUser?.displayName || "",
+        email: currentUser?.email || "",
+        telefono: "",
+        servicio: "",
+        dias: 7,
+        descripcion: "",
+        moneda: "USD",
+      });
+
+      setPrice(null);
+      setConvertedPrice(null);
+    } catch (error) {
+      console.error('Error al guardar la cotización:', error);
+      toast({
+        title: "Error al enviar la cotización",
+        description: "Ocurrió un error al procesar tu solicitud. Inténtalo nuevamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Actualizar precio cada vez que cambian servicio, días o moneda
@@ -367,6 +384,12 @@ const QuoteForm = () => {
         <Button type="submit" className="w-full bg-daty-600 hover:bg-daty-700">
           Solicitar Cotización
         </Button>
+        
+        {!currentUser && (
+          <div className="text-center text-sm text-muted-foreground mt-4">
+            <p>Inicia sesión para acceder a todas las funcionalidades y seguimiento de tus solicitudes.</p>
+          </div>
+        )}
       </form>
     </Form>
   );
