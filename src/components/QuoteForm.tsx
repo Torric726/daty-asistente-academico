@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
@@ -17,11 +16,10 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { CurrencyCode, currencies, convertPrice, formatCurrency } from "@/services/currencyService";
+import { CurrencyCode, currencies, convertPrice, formatCurrency, formatPriceWithUSDEquivalent } from "@/services/currencyService";
 import { saveQuote, getLocalQuotes } from "@/services/quoteService";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Servicios disponibles para selección
 const services = [
   {
     id: 1,
@@ -92,14 +90,12 @@ const QuoteForm = () => {
   });
 
   useEffect(() => {
-    // Actualizar valores del formulario cuando el usuario inicia sesión
     if (currentUser) {
       form.setValue('nombre', currentUser.displayName || '');
       form.setValue('email', currentUser.email || '');
     }
   }, [currentUser, form]);
 
-  // Calcular precio cuando cambian los valores relevantes
   const calculatePrice = (serviceId: string, days: number) => {
     const selectedService = services.find(s => s.id.toString() === serviceId);
     if (!selectedService) return null;
@@ -107,7 +103,6 @@ const QuoteForm = () => {
     let basePrice = selectedService.price;
     let urgencyFee = 0;
 
-    // Cargo por urgencia
     if (days < 3) {
       urgencyFee = 20;
       setUrgent(true);
@@ -119,7 +114,6 @@ const QuoteForm = () => {
     }
 
     const total = basePrice + urgencyFee;
-    // Aplicar 20% de descuento
     return {
       basePrice,
       urgencyFee,
@@ -128,7 +122,6 @@ const QuoteForm = () => {
     };
   };
 
-  // Actualizar precio cuando cambia el servicio o los días
   const watchService = form.watch("servicio");
   const watchDias = form.watch("dias");
   const watchMoneda = form.watch("moneda");
@@ -136,12 +129,12 @@ const QuoteForm = () => {
   const onSubmit = async (values: FormValues) => {
     if (!price) return;
     
-    // Generar ID único para la cotización
     const quoteId = `DATY-${Math.floor(1000 + Math.random() * 9000)}`;
     
-    // Encontrar el nombre del servicio seleccionado
     const selectedService = services.find(s => s.id.toString() === values.servicio);
     const serviceName = selectedService ? selectedService.name : "Servicio desconocido";
+    
+    const originalPriceUSD = price;
     
     const quoteData = {
       id: quoteId,
@@ -153,7 +146,7 @@ const QuoteForm = () => {
       servicioNombre: serviceName,
       dias: values.dias,
       descripcion: values.descripcion,
-      precio: price,
+      precio: originalPriceUSD,
       moneda: values.moneda as CurrencyCode,
       estado: "Pendiente",
       userId: currentUser?.uid || null,
@@ -161,23 +154,19 @@ const QuoteForm = () => {
     };
 
     try {
-      // Guardar en Firestore si el usuario está autenticado
       if (currentUser) {
         await saveQuote(quoteData);
       } else {
-        // Fallback a localStorage si no está autenticado
         const savedQuotes = getLocalQuotes();
         savedQuotes.push(quoteData);
         localStorage.setItem('datyQuotes', JSON.stringify(savedQuotes));
       }
 
-      // Mostrar notificación
       toast({
         title: "Cotización enviada",
         description: `Se ha registrado tu cotización con ID: ${quoteId}. Te contactaremos pronto con los detalles.`,
       });
 
-      // Limpiar el formulario
       form.reset({
         nombre: currentUser?.displayName || "",
         email: currentUser?.email || "",
@@ -200,7 +189,6 @@ const QuoteForm = () => {
     }
   };
 
-  // Actualizar precio cada vez que cambian servicio, días o moneda
   useEffect(() => {
     if (watchService && watchDias) {
       const priceDetails = calculatePrice(watchService, watchDias);

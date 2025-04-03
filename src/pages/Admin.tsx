@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -20,7 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/services/currencyService";
+import { formatCurrency, formatPriceWithUSDEquivalent, convertToUSD } from "@/services/currencyService";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { Users, PieChart as PieChartIcon, Calendar, DollarSign } from "lucide-react";
 
@@ -47,19 +46,16 @@ const Admin = () => {
     }
   }, [isAdmin]);
 
-  // Si no es administrador, redirigir a la página principal
   if (!currentUser || !isAdmin) {
     return <Navigate to="/" />;
   }
 
-  // Estadísticas generales
   const totalQuotes = quotes.length;
-  const totalRevenue = quotes.reduce((sum, quote) => sum + quote.precio, 0);
+  const totalRevenue = quotes.reduce((sum, quote) => sum + convertToUSD(quote.precio, quote.moneda), 0);
   const averageDays = quotes.length > 0 
     ? quotes.reduce((sum, quote) => sum + quote.dias, 0) / quotes.length 
     : 0;
   
-  // Datos para el gráfico de servicios
   const serviceData = quotes.reduce((acc: {name: string, value: number}[], quote) => {
     const existingService = acc.find(item => item.name === quote.servicioNombre);
     if (existingService) {
@@ -70,7 +66,6 @@ const Admin = () => {
     return acc;
   }, []);
   
-  // Datos para el gráfico de estados
   const statusData = quotes.reduce((acc: {name: string, value: number}[], quote) => {
     const existingStatus = acc.find(item => item.name === quote.estado);
     if (existingStatus) {
@@ -79,9 +74,8 @@ const Admin = () => {
       acc.push({ name: quote.estado, value: 1 });
     }
     return acc;
-  }, []);
+  });
 
-  // Colores para los gráficos
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
   const STATUS_COLORS = {
     'Pendiente': '#FFBB28',
@@ -134,7 +128,7 @@ const Admin = () => {
                       {formatCurrency(totalRevenue, 'USD')}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Valor de cotizaciones
+                      Valor de cotizaciones (USD)
                     </p>
                   </CardContent>
                 </Card>
@@ -279,7 +273,7 @@ const Admin = () => {
                               {quote.estado}
                             </span>
                             <span className="text-sm mt-1 font-medium">
-                              {formatCurrency(quote.precio, quote.moneda)}
+                              {formatPriceWithUSDEquivalent(quote.precio, quote.moneda)}
                             </span>
                           </div>
                         </div>

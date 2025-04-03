@@ -25,6 +25,7 @@ export const currencies = [
   { code: 'EUR', name: 'Euros', symbol: '€' },
 ];
 
+// Función para convertir precios entre monedas
 export const convertPrice = (amount: number, toCurrency: CurrencyCode): number => {
   if (!exchangeRates[toCurrency]) {
     return amount; // Si la moneda no existe, devolver el monto original
@@ -33,9 +34,33 @@ export const convertPrice = (amount: number, toCurrency: CurrencyCode): number =
   return amount * exchangeRates[toCurrency];
 };
 
+// Función para formatear precios según la moneda
 export const formatCurrency = (amount: number, currencyCode: CurrencyCode): string => {
   const currency = currencies.find(c => c.code === currencyCode);
   if (!currency) return `$${amount.toFixed(2)}`;
   
   return `${currency.symbol}${amount.toFixed(2)}`;
+};
+
+// Nueva función para convertir de cualquier moneda a USD (para mostrar equivalentes)
+export const convertToUSD = (amount: number, fromCurrency: CurrencyCode): number => {
+  if (fromCurrency === 'USD') return amount;
+  if (!exchangeRates[fromCurrency]) return amount;
+  
+  // Convertir de la moneda origen a USD
+  return amount / exchangeRates[fromCurrency];
+};
+
+// Nueva función para mostrar el precio en formato original y su equivalente en USD
+export const formatPriceWithUSDEquivalent = (amount: number, currencyCode: CurrencyCode): string => {
+  const formattedPrice = formatCurrency(amount, currencyCode);
+  
+  // Si ya está en USD, solo devolver el formato
+  if (currencyCode === 'USD') {
+    return formattedPrice;
+  }
+  
+  // Convertir a USD y formatear
+  const usdEquivalent = convertToUSD(amount, currencyCode);
+  return `${formattedPrice} (≈ $${usdEquivalent.toFixed(2)} USD)`;
 };

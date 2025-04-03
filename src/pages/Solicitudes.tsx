@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -10,7 +9,7 @@ import {
   TabsList, 
   TabsTrigger 
 } from "@/components/ui/tabs";
-import { formatCurrency, CurrencyCode } from "@/services/currencyService";
+import { formatCurrency, CurrencyCode, formatPriceWithUSDEquivalent } from "@/services/currencyService";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAllQuotes, getUserQuotes, getLocalQuotes, Quote } from "@/services/quoteService";
@@ -53,18 +52,14 @@ const Solicitudes = () => {
         
         if (currentUser) {
           if (isAdmin) {
-            // Si es admin, obtener todas las cotizaciones
             fetchedQuotes = await getAllQuotes();
           } else {
-            // Si es usuario normal, obtener solo sus cotizaciones
             fetchedQuotes = await getUserQuotes(currentUser.uid);
           }
         } else {
-          // Si no hay usuario, usar localStorage (compatibilidad)
           fetchedQuotes = getLocalQuotes();
         }
         
-        // Ordenar por fecha (más reciente primero)
         fetchedQuotes.sort((a, b) => b.timestamp - a.timestamp);
         
         setQuotes(fetchedQuotes);
@@ -80,10 +75,8 @@ const Solicitudes = () => {
   }, [currentUser, isAdmin]);
   
   useEffect(() => {
-    // Filtrar por término de búsqueda y estado
     let filtered = quotes;
     
-    // Filtrar por término de búsqueda
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(quote => 
@@ -95,7 +88,6 @@ const Solicitudes = () => {
       );
     }
     
-    // Filtrar por estado
     if (filterStatus !== "all") {
       filtered = filtered.filter(quote => quote.estado === filterStatus);
     }
@@ -111,7 +103,6 @@ const Solicitudes = () => {
     });
   };
 
-  // Función para acortar textos largos en vista móvil
   const truncateText = (text: string, maxLength: number) => {
     return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
   };
@@ -229,7 +220,7 @@ const Solicitudes = () => {
                             <TableCell>{truncateText(quote.descripcion, 50)}</TableCell>
                           )}
                           <TableCell>
-                            {formatCurrency(quote.precio, quote.moneda)}
+                            {formatPriceWithUSDEquivalent(quote.precio, quote.moneda)}
                           </TableCell>
                           <TableCell>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -371,7 +362,7 @@ const Solicitudes = () => {
                   <div className="bg-daty-50 p-3 rounded-md mt-4">
                     <p className="text-sm font-medium">Precio final</p>
                     <p className="text-xl font-bold">
-                      {formatCurrency(selectedQuote.precio, selectedQuote.moneda)}
+                      {formatPriceWithUSDEquivalent(selectedQuote.precio, selectedQuote.moneda)}
                       <span className="text-xs font-normal text-muted-foreground ml-2">
                         (incluye 20% de descuento)
                       </span>
