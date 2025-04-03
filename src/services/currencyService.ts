@@ -25,7 +25,7 @@ export const currencies = [
   { code: 'EUR', name: 'Euros', symbol: '€' },
 ];
 
-// Función para convertir precios entre monedas
+// Función para convertir precios de USD a cualquier moneda
 export const convertPrice = (amount: number, toCurrency: CurrencyCode): number => {
   if (!exchangeRates[toCurrency]) {
     return amount; // Si la moneda no existe, devolver el monto original
@@ -42,7 +42,7 @@ export const formatCurrency = (amount: number, currencyCode: CurrencyCode): stri
   return `${currency.symbol}${amount.toFixed(2)}`;
 };
 
-// Nueva función para convertir de cualquier moneda a USD (para mostrar equivalentes)
+// Función para convertir de cualquier moneda a USD
 export const convertToUSD = (amount: number, fromCurrency: CurrencyCode): number => {
   if (fromCurrency === 'USD') return amount;
   if (!exchangeRates[fromCurrency]) return amount;
@@ -51,7 +51,7 @@ export const convertToUSD = (amount: number, fromCurrency: CurrencyCode): number
   return amount / exchangeRates[fromCurrency];
 };
 
-// Nueva función para mostrar el precio en formato original y su equivalente en USD
+// Función para mostrar el precio en formato original y su equivalente en USD
 export const formatPriceWithUSDEquivalent = (amount: number, currencyCode: CurrencyCode): string => {
   const formattedPrice = formatCurrency(amount, currencyCode);
   

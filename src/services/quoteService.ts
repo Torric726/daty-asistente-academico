@@ -1,5 +1,5 @@
 
-import { collection, getDocs, addDoc, query, where, Timestamp, DocumentData } from "firebase/firestore";
+import { collection, getDocs, addDoc, query, where, Timestamp, DocumentData, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { CurrencyCode } from "./currencyService";
 
@@ -71,6 +71,20 @@ export const getUserQuotes = async (userId: string): Promise<Quote[]> => {
   }
 };
 
+// Actualizar el estado de una cotización
+export const updateQuoteStatus = async (quoteId: string, newStatus: string): Promise<void> => {
+  try {
+    const quoteRef = doc(db, 'quotes', quoteId);
+    await updateDoc(quoteRef, {
+      estado: newStatus
+    });
+    return;
+  } catch (error) {
+    console.error("Error al actualizar el estado de la cotización:", error);
+    throw error;
+  }
+};
+
 // Función para cotizaciones en localStorage (fallback y compatibilidad)
 export const getLocalQuotes = (): Quote[] => {
   try {
@@ -82,4 +96,22 @@ export const getLocalQuotes = (): Quote[] => {
     console.error("Error al cargar cotizaciones del localStorage:", error);
   }
   return [];
+};
+
+// Actualizar el estado de una cotización local
+export const updateLocalQuoteStatus = (quoteId: string, newStatus: string): boolean => {
+  try {
+    const savedQuotes = getLocalQuotes();
+    const quoteIndex = savedQuotes.findIndex(q => q.id === quoteId);
+    
+    if (quoteIndex !== -1) {
+      savedQuotes[quoteIndex].estado = newStatus;
+      localStorage.setItem('datyQuotes', JSON.stringify(savedQuotes));
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error al actualizar el estado de la cotización local:", error);
+    return false;
+  }
 };

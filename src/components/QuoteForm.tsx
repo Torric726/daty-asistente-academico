@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { CurrencyCode, currencies, convertPrice, formatCurrency, formatPriceWithUSDEquivalent } from "@/services/currencyService";
+import { CurrencyCode, currencies, convertPrice, formatCurrency } from "@/services/currencyService";
 import { saveQuote, getLocalQuotes } from "@/services/quoteService";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -69,7 +69,7 @@ const QuoteForm = () => {
   const [searchParams] = useSearchParams();
   const preselectedService = searchParams.get("service");
   
-  const [price, setPrice] = useState<number | null>(null);
+  const [priceUSD, setPriceUSD] = useState<number | null>(null);
   const [convertedPrice, setConvertedPrice] = useState<number | null>(null);
   const [urgent, setUrgent] = useState<boolean>(false);
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>("USD");
@@ -127,14 +127,12 @@ const QuoteForm = () => {
   const watchMoneda = form.watch("moneda");
 
   const onSubmit = async (values: FormValues) => {
-    if (!price) return;
+    if (!priceUSD) return;
     
     const quoteId = `DATY-${Math.floor(1000 + Math.random() * 9000)}`;
     
     const selectedService = services.find(s => s.id.toString() === values.servicio);
     const serviceName = selectedService ? selectedService.name : "Servicio desconocido";
-    
-    const originalPriceUSD = price;
     
     const quoteData = {
       id: quoteId,
@@ -146,7 +144,7 @@ const QuoteForm = () => {
       servicioNombre: serviceName,
       dias: values.dias,
       descripcion: values.descripcion,
-      precio: originalPriceUSD,
+      precio: priceUSD,
       moneda: values.moneda as CurrencyCode,
       estado: "Pendiente",
       userId: currentUser?.uid || null,
@@ -177,7 +175,7 @@ const QuoteForm = () => {
         moneda: "USD",
       });
 
-      setPrice(null);
+      setPriceUSD(null);
       setConvertedPrice(null);
     } catch (error) {
       console.error('Error al guardar la cotización:', error);
@@ -192,11 +190,13 @@ const QuoteForm = () => {
   useEffect(() => {
     if (watchService && watchDias) {
       const priceDetails = calculatePrice(watchService, watchDias);
-      const newPrice = priceDetails ? priceDetails.discounted : null;
-      setPrice(newPrice);
+      const newPriceUSD = priceDetails ? priceDetails.discounted : null;
+      setPriceUSD(newPriceUSD);
       
-      if (newPrice) {
-        const converted = convertPrice(newPrice, watchMoneda as CurrencyCode);
+      if (newPriceUSD) {
+        const converted = watchMoneda === 'USD' 
+          ? newPriceUSD 
+          : convertPrice(newPriceUSD, watchMoneda as CurrencyCode);
         setConvertedPrice(converted);
       }
     }
@@ -363,7 +363,7 @@ const QuoteForm = () => {
             </p>
             {selectedCurrency !== "USD" && (
               <p className="text-sm text-muted-foreground mt-1">
-                Equivalente a ${price?.toFixed(2)} USD
+                Equivalente a ${priceUSD?.toFixed(2)} USD
               </p>
             )}
           </div>
