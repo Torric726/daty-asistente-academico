@@ -42,11 +42,9 @@ const Navbar = () => {
           <Link to="/faq" className="text-sm font-medium hover:text-daty-600 transition-colors">
             Preguntas Frecuentes
           </Link>
-          {currentUser && (
-            <Link to="/solicitudes" className="text-sm font-medium hover:text-daty-600 transition-colors">
-              Mis Solicitudes
-            </Link>
-          )}
+          <Link to="/solicitudes" className="text-sm font-medium hover:text-daty-600 transition-colors">
+            Mis Solicitudes
+          </Link>
           {isAdmin && (
             <Link to="/admin" className="text-sm font-medium text-daty-600 hover:text-daty-800 transition-colors">
               Administración
@@ -152,16 +150,14 @@ const Navbar = () => {
               <HelpCircle size={18} />
               <span>Preguntas Frecuentes</span>
             </Link>
-            {currentUser && (
-              <Link
-                to="/solicitudes"
-                className="flex items-center gap-2 p-3 rounded-md hover:bg-muted transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <ClipboardList size={18} />
-                <span>Mis Solicitudes</span>
-              </Link>
-            )}
+            <Link
+              to="/solicitudes"
+              className="flex items-center gap-2 p-3 rounded-md hover:bg-muted transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <ClipboardList size={18} />
+              <span>Mis Solicitudes</span>
+            </Link>
             {isAdmin && (
               <Link
                 to="/admin"

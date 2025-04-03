@@ -61,14 +61,28 @@ const Solicitudes = () => {
         setIsLoading(true);
         let fetchedQuotes: Quote[] = [];
         
+        const localQuotes = getLocalQuotes();
+        
         if (currentUser) {
           if (isAdmin) {
-            fetchedQuotes = await getAllQuotes();
+            const firebaseQuotes = await getAllQuotes();
+            
+            const firebaseIds = firebaseQuotes.map(q => q.id);
+            const uniqueLocalQuotes = localQuotes.filter(q => !firebaseIds.includes(q.id));
+            
+            fetchedQuotes = [...firebaseQuotes, ...uniqueLocalQuotes];
           } else {
-            fetchedQuotes = await getUserQuotes(currentUser.uid);
+            const userQuotes = await getUserQuotes(currentUser.uid);
+            
+            const firebaseIds = userQuotes.map(q => q.id);
+            const userLocalQuotes = localQuotes.filter(q => 
+              q.userId === currentUser.uid && !firebaseIds.includes(q.id)
+            );
+            
+            fetchedQuotes = [...userQuotes, ...userLocalQuotes];
           }
         } else {
-          fetchedQuotes = getLocalQuotes();
+          fetchedQuotes = localQuotes;
         }
         
         fetchedQuotes.sort((a, b) => b.timestamp - a.timestamp);
@@ -77,6 +91,9 @@ const Solicitudes = () => {
         setFilteredQuotes(fetchedQuotes);
       } catch (error) {
         console.error("Error al cargar cotizaciones:", error);
+        const localQuotes = getLocalQuotes();
+        setQuotes(localQuotes);
+        setFilteredQuotes(localQuotes);
       } finally {
         setIsLoading(false);
       }
@@ -330,7 +347,7 @@ const Solicitudes = () => {
               <p className="text-muted-foreground mb-6">
                 {currentUser 
                   ? "Cuando realices una cotización o solicites un servicio, podrás ver el historial aquí."
-                  : "Inicia sesión para ver tus solicitudes o realiza una nueva cotización."
+                  : "Realiza una cotización para ver el historial aquí."
                 }
               </p>
               <Button className="bg-daty-600 hover:bg-daty-700" onClick={() => window.location.href = '/cotizar'}>

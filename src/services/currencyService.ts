@@ -58,9 +58,10 @@ export const formatPriceWithUSDEquivalent = (amount: number, currencyCode: Curre
     return formatCurrency(amount, currencyCode);
   }
   
-  // Convertir a la moneda seleccionada y formatear
+  // El amount ya está en USD, así que lo convertimos a la moneda local
   const convertedAmount = convertPrice(amount, currencyCode);
-  const formattedPrice = formatCurrency(convertedAmount, currencyCode);
+  const formattedConvertedPrice = formatCurrency(convertedAmount, currencyCode);
+  const formattedUsdPrice = formatCurrency(amount, 'USD');
   
-  return `${formattedPrice} (≈ ${formatCurrency(amount, 'USD')} USD)`;
+  return `${formattedConvertedPrice} (≈ ${formattedUsdPrice})`;
 };
