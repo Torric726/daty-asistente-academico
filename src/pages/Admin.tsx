@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
-import { getAllQuotes, Quote } from "@/services/quoteService";
+import { getAllQuotes, Quote, updateQuoteStatus } from "@/services/quoteService";
 import {
   Tabs,
   TabsContent,
@@ -56,7 +57,8 @@ const Admin = () => {
     ? quotes.reduce((sum, quote) => sum + quote.dias, 0) / quotes.length 
     : 0;
   
-  const serviceData = quotes.reduce((acc: {name: string, value: number}[], quote) => {
+  // Fix for the type errors in service data aggregation
+  const serviceData = quotes.reduce<{ name: string, value: number }[]>((acc, quote) => {
     const existingService = acc.find(item => item.name === quote.servicioNombre);
     if (existingService) {
       existingService.value += 1;
@@ -66,7 +68,8 @@ const Admin = () => {
     return acc;
   }, []);
   
-  const statusData = quotes.reduce((acc: {name: string, value: number}[], quote) => {
+  // Fix for the type errors in status data aggregation
+  const statusData = quotes.reduce<{ name: string, value: number }[]>((acc, quote) => {
     const existingStatus = acc.find(item => item.name === quote.estado);
     if (existingStatus) {
       existingStatus.value += 1;
@@ -74,7 +77,7 @@ const Admin = () => {
       acc.push({ name: quote.estado, value: 1 });
     }
     return acc;
-  });
+  }, []);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
   const STATUS_COLORS = {

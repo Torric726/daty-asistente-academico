@@ -70,7 +70,7 @@ const QuoteForm = () => {
   const preselectedService = searchParams.get("service");
   
   const [priceUSD, setPriceUSD] = useState<number | null>(null);
-  const [convertedPrice, setConvertedPrice] = useState<number | null>(null);
+  const [displayPrice, setDisplayPrice] = useState<number | null>(null);
   const [urgent, setUrgent] = useState<boolean>(false);
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>("USD");
   const { toast } = useToast();
@@ -176,7 +176,7 @@ const QuoteForm = () => {
       });
 
       setPriceUSD(null);
-      setConvertedPrice(null);
+      setDisplayPrice(null);
     } catch (error) {
       console.error('Error al guardar la cotización:', error);
       toast({
@@ -194,10 +194,12 @@ const QuoteForm = () => {
       setPriceUSD(newPriceUSD);
       
       if (newPriceUSD) {
-        const converted = watchMoneda === 'USD' 
-          ? newPriceUSD 
-          : convertPrice(newPriceUSD, watchMoneda as CurrencyCode);
-        setConvertedPrice(converted);
+        if (watchMoneda === 'USD') {
+          setDisplayPrice(newPriceUSD);
+        } else {
+          const converted = convertPrice(newPriceUSD, watchMoneda as CurrencyCode);
+          setDisplayPrice(converted);
+        }
       }
     }
   }, [watchService, watchDias, watchMoneda]);
@@ -355,11 +357,11 @@ const QuoteForm = () => {
           </div>
         </div>
 
-        {convertedPrice && (
+        {displayPrice && (
           <div className="bg-daty-50 p-4 rounded-md border border-daty-100">
             <h3 className="font-medium text-lg mb-1">Tu cotización:</h3>
             <p className="text-2xl font-bold text-daty-700">
-              {formatCurrency(convertedPrice, selectedCurrency)} <span className="text-sm font-normal text-muted-foreground">(incluye 20% de descuento)</span>
+              {formatCurrency(displayPrice, selectedCurrency)} <span className="text-sm font-normal text-muted-foreground">(incluye 20% de descuento)</span>
             </p>
             {selectedCurrency !== "USD" && (
               <p className="text-sm text-muted-foreground mt-1">

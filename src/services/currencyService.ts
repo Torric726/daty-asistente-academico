@@ -53,14 +53,14 @@ export const convertToUSD = (amount: number, fromCurrency: CurrencyCode): number
 
 // Función para mostrar el precio en formato original y su equivalente en USD
 export const formatPriceWithUSDEquivalent = (amount: number, currencyCode: CurrencyCode): string => {
-  const formattedPrice = formatCurrency(amount, currencyCode);
-  
   // Si ya está en USD, solo devolver el formato
   if (currencyCode === 'USD') {
-    return formattedPrice;
+    return formatCurrency(amount, currencyCode);
   }
   
-  // Convertir a USD y formatear
-  const usdEquivalent = convertToUSD(amount, currencyCode);
-  return `${formattedPrice} (≈ $${usdEquivalent.toFixed(2)} USD)`;
+  // Convertir a la moneda seleccionada y formatear
+  const convertedAmount = convertPrice(amount, currencyCode);
+  const formattedPrice = formatCurrency(convertedAmount, currencyCode);
+  
+  return `${formattedPrice} (≈ ${formatCurrency(amount, 'USD')} USD)`;
 };
