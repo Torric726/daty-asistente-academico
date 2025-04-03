@@ -13,7 +13,7 @@ const featuredServices = [
   {
     id: 1,
     name: "ANÁLISIS DE DATOS",
-    price: 50,
+    price: 15,
     description: "Procesamiento y análisis de datos para proyectos académicos y de investigación.",
     features: [
       "Encuestas y análisis",
@@ -26,7 +26,7 @@ const featuredServices = [
   {
     id: 2,
     name: "TAREAS Y TRABAJOS DIGITALES",
-    price: 40,
+    price: 9,
     description: "Desarrollo de contenido digital para diferentes asignaturas y proyectos.",
     features: [
       "Resúmenes y esquemas",
@@ -38,7 +38,7 @@ const featuredServices = [
   {
     id: 4,
     name: "INVESTIGACIONES Y TESINAS",
-    price: 70,
+    price: 15,
     description: "Apoyo en el desarrollo y redacción de proyectos de investigación académica.",
     features: [
       "Desarrollo de proyectos",

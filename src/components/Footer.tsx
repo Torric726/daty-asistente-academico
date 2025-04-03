@@ -55,9 +55,9 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-lg mb-4">Contacto</h3>
             <ul className="space-y-2 text-gray-300">
-              <li>contact@daty.com</li>
-              <li>+52 55 1234 5678</li>
-              <li>Lunes a Viernes: 9am - 6pm</li>
+              <li>daty5338@gmail.com</li>
+              <li>+591 69512310</li>
+              <li>Lunes a Viernes: 9am - 7pm</li>
             </ul>
           </div>
         </div>
