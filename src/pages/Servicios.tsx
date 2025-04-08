@@ -8,7 +8,7 @@ const services = [
   {
     id: 1,
     name: "ANÁLISIS DE DATOS",
-    price: 15,
+    price: 50,
     description: "Encuestas y análisis, estadísticas descriptivas, análisis y limpieza de bases de datos, visualización de datos y gráficos personalizados, elaboración de reportes y consultas.",
     features: [
       "Encuestas y análisis",
@@ -22,7 +22,7 @@ const services = [
   {
     id: 2,
     name: "TAREAS Y TRABAJOS DIGITALES",
-    price: 9,
+    price: 40,
     description: "Resúmenes y esquemas, presentaciones y diapositivas, creación de formularios digitales, revisión y corrección de trabajos académicos.",
     features: [
       "Resúmenes y esquemas",
@@ -34,7 +34,7 @@ const services = [
   {
     id: 3,
     name: "PROYECTOS Y ESTRATEGIAS",
-    price: 10,
+    price: 60,
     description: "Estudios de impacto, gestión de presupuestos, planificación y estrategias para eventos.",
     features: [
       "Estudios de impacto",
@@ -45,7 +45,7 @@ const services = [
   {
     id: 4,
     name: "INVESTIGACIONES Y TESINAS",
-    price: 15,
+    price: 70,
     description: "Desarrollo de proyectos de investigación, análisis y redacción de estudios, elaboración de tesinas, documentos en código LaTeX.",
     features: [
       "Desarrollo de proyectos de investigación",
@@ -57,7 +57,7 @@ const services = [
   {
     id: 5,
     name: "VISUALIZADORES Y REPORTES",
-    price: 9,
+    price: 55,
     description: "Comparativas y análisis de tendencias, tableros interactivos y dashboards, gráficos personalizados sin necesidad de programación, visualización de datos analíticos.",
     features: [
       "Comparativas y análisis de tendencias",
@@ -69,7 +69,7 @@ const services = [
   {
     id: 6,
     name: "INFORMES Y DOCUMENTACIÓN",
-    price: 7,
+    price: 45,
     description: "Evaluaciones de impacto, síntesis y resúmenes de proyectos, revisión y corrección de documentos.",
     features: [
       "Evaluaciones de impacto",

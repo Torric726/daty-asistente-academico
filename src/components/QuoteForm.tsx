@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
   Form, 
@@ -16,40 +17,38 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { CurrencyCode, currencies, convertPrice, formatCurrency, formatPriceWithUSDEquivalent } from "@/services/currencyService";
-import { saveQuote, getLocalQuotes } from "@/services/quoteService";
-import { useAuth } from "@/contexts/AuthContext";
 
+// Servicios disponibles para selección
 const services = [
   {
     id: 1,
     name: "ANÁLISIS DE DATOS",
-    price: 15,
+    price: 50,
   },
   {
     id: 2,
     name: "TAREAS Y TRABAJOS DIGITALES",
-    price: 9,
+    price: 40,
   },
   {
     id: 3,
     name: "PROYECTOS Y ESTRATEGIAS",
-    price: 10,
+    price: 60,
   },
   {
     id: 4,
     name: "INVESTIGACIONES Y TESINAS",
-    price: 15,
+    price: 70,
   },
   {
     id: 5,
     name: "VISUALIZADORES Y REPORTES",
-    price: 9,
+    price: 55,
   },
   {
     id: 6,
     name: "INFORMES Y DOCUMENTACIÓN",
-    price: 7,
+    price: 45,
   }
 ];
 
@@ -60,7 +59,6 @@ const formSchema = z.object({
   servicio: z.string({ required_error: "Seleccione un servicio" }),
   dias: z.coerce.number().min(1, { message: "Debe ser al menos 1 día" }).max(60, { message: "Máximo 60 días" }),
   descripcion: z.string().min(20, { message: "La descripción debe tener al menos 20 caracteres" }),
-  moneda: z.string().default("USD"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -70,32 +68,22 @@ const QuoteForm = () => {
   const preselectedService = searchParams.get("service");
   
   const [price, setPrice] = useState<number | null>(null);
-  const [convertedPrice, setConvertedPrice] = useState<number | null>(null);
   const [urgent, setUrgent] = useState<boolean>(false);
-  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>("USD");
   const { toast } = useToast();
-  const { currentUser } = useAuth();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nombre: currentUser?.displayName || "",
-      email: currentUser?.email || "",
+      nombre: "",
+      email: "",
       telefono: "",
       servicio: preselectedService || "",
       dias: 7,
       descripcion: "",
-      moneda: "USD",
     },
   });
 
-  useEffect(() => {
-    if (currentUser) {
-      form.setValue('nombre', currentUser.displayName || '');
-      form.setValue('email', currentUser.email || '');
-    }
-  }, [currentUser, form]);
-
+  // Calcular precio cuando cambian los valores relevantes
   const calculatePrice = (serviceId: string, days: number) => {
     const selectedService = services.find(s => s.id.toString() === serviceId);
     if (!selectedService) return null;
@@ -103,6 +91,7 @@ const QuoteForm = () => {
     let basePrice = selectedService.price;
     let urgencyFee = 0;
 
+    // Cargo por urgencia
     if (days < 3) {
       urgencyFee = 20;
       setUrgent(true);
@@ -114,6 +103,7 @@ const QuoteForm = () => {
     }
 
     const total = basePrice + urgencyFee;
+    // Aplicar 20% de descuento
     return {
       basePrice,
       urgencyFee,
@@ -122,85 +112,31 @@ const QuoteForm = () => {
     };
   };
 
+  // Actualizar precio cuando cambia el servicio o los días
   const watchService = form.watch("servicio");
   const watchDias = form.watch("dias");
-  const watchMoneda = form.watch("moneda");
 
-  const onSubmit = async (values: FormValues) => {
-    if (!price) return;
+  const onSubmit = (values: FormValues) => {
+    // Aquí se procesaría el formulario, por ahora mostramos un toast
+    toast({
+      title: "Cotización enviada",
+      description: "Te contactaremos pronto con los detalles de tu cotización.",
+    });
+
+    // Simular generación de ID
+    const jobId = `DATY-${Math.floor(1000 + Math.random() * 9000)}`;
     
-    const quoteId = `DATY-${Math.floor(1000 + Math.random() * 9000)}`;
-    
-    const selectedService = services.find(s => s.id.toString() === values.servicio);
-    const serviceName = selectedService ? selectedService.name : "Servicio desconocido";
-    
-    const originalPriceUSD = price;
-    
-    const quoteData = {
-      id: quoteId,
-      timestamp: Date.now(),
-      nombre: values.nombre,
-      email: values.email,
-      telefono: values.telefono,
-      servicio: values.servicio,
-      servicioNombre: serviceName,
-      dias: values.dias,
-      descripcion: values.descripcion,
-      precio: originalPriceUSD,
-      moneda: values.moneda as CurrencyCode,
-      estado: "Pendiente",
-      userId: currentUser?.uid || null,
-      photoURL: currentUser?.photoURL || null
-    };
-
-    try {
-      if (currentUser) {
-        await saveQuote(quoteData);
-      } else {
-        const savedQuotes = getLocalQuotes();
-        savedQuotes.push(quoteData);
-        localStorage.setItem('datyQuotes', JSON.stringify(savedQuotes));
-      }
-
-      toast({
-        title: "Cotización enviada",
-        description: `Se ha registrado tu cotización con ID: ${quoteId}. Te contactaremos pronto con los detalles.`,
-      });
-
-      form.reset({
-        nombre: currentUser?.displayName || "",
-        email: currentUser?.email || "",
-        telefono: "",
-        servicio: "",
-        dias: 7,
-        descripcion: "",
-        moneda: "USD",
-      });
-
-      setPrice(null);
-      setConvertedPrice(null);
-    } catch (error) {
-      console.error('Error al guardar la cotización:', error);
-      toast({
-        title: "Error al enviar la cotización",
-        description: "Ocurrió un error al procesar tu solicitud. Inténtalo nuevamente.",
-        variant: "destructive",
-      });
-    }
+    console.log("Formulario enviado:", values);
+    console.log("ID de trabajo generado:", jobId);
   };
 
-  useEffect(() => {
+  // Actualizar precio cada vez que cambian servicio o días
+  useState(() => {
     if (watchService && watchDias) {
       const priceDetails = calculatePrice(watchService, watchDias);
-      const newPrice = priceDetails ? priceDetails.discounted : null;
-      setPrice(newPrice);
-      
-      if (newPrice) {
-        const converted = convertPrice(newPrice, watchMoneda as CurrencyCode);
-        setConvertedPrice(converted);
-      }
+      setPrice(priceDetails ? priceDetails.discounted : null);
     }
-  }, [watchService, watchDias, watchMoneda]);
+  });
 
   return (
     <Form {...form}>
@@ -257,11 +193,13 @@ const QuoteForm = () => {
                 <Select 
                   onValueChange={(value) => {
                     field.onChange(value);
+                    const priceDetails = calculatePrice(value, watchDias);
+                    setPrice(priceDetails ? priceDetails.discounted : null);
                   }} 
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger className="bg-background">
+                    <SelectTrigger>
                       <SelectValue placeholder="Selecciona un servicio" />
                     </SelectTrigger>
                   </FormControl>
@@ -289,40 +227,17 @@ const QuoteForm = () => {
                     type="number" 
                     min={1}
                     max={60}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      const value = parseInt(e.target.value);
+                      if (value && watchService) {
+                        const priceDetails = calculatePrice(watchService, value);
+                        setPrice(priceDetails ? priceDetails.discounted : null);
+                      }
+                    }}
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="moneda"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Moneda</FormLabel>
-                <Select 
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    setSelectedCurrency(value as CurrencyCode);
-                  }} 
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Selecciona una moneda" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {currencies.map((currency) => (
-                      <SelectItem key={currency.code} value={currency.code}>
-                        {currency.name} ({currency.symbol})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -355,29 +270,16 @@ const QuoteForm = () => {
           </div>
         </div>
 
-        {convertedPrice && (
+        {price && (
           <div className="bg-daty-50 p-4 rounded-md border border-daty-100">
             <h3 className="font-medium text-lg mb-1">Tu cotización:</h3>
-            <p className="text-2xl font-bold text-daty-700">
-              {formatCurrency(convertedPrice, selectedCurrency)} <span className="text-sm font-normal text-muted-foreground">(incluye 20% de descuento)</span>
-            </p>
-            {selectedCurrency !== "USD" && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Equivalente a ${price?.toFixed(2)} USD
-              </p>
-            )}
+            <p className="text-2xl font-bold text-daty-700">${price.toFixed(2)} <span className="text-sm font-normal text-muted-foreground">(incluye 20% de descuento)</span></p>
           </div>
         )}
 
         <Button type="submit" className="w-full bg-daty-600 hover:bg-daty-700">
           Solicitar Cotización
         </Button>
-        
-        {!currentUser && (
-          <div className="text-center text-sm text-muted-foreground mt-4">
-            <p>Inicia sesión para acceder a todas las funcionalidades y seguimiento de tus solicitudes.</p>
-          </div>
-        )}
       </form>
     </Form>
   );
