@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -9,17 +10,9 @@ import {
   TabsList, 
   TabsTrigger 
 } from "@/components/ui/tabs";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-import { formatCurrency, CurrencyCode, formatPriceWithUSDEquivalent } from "@/services/currencyService";
+import { formatCurrency, formatPriceWithUSDEquivalent } from "@/services/currencyService";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useAuth } from "@/contexts/AuthContext";
-import { getAllQuotes, getUserQuotes, getLocalQuotes, Quote, updateQuoteStatus, updateLocalQuoteStatus } from "@/services/quoteService";
+import { getAllQuotes, getLocalQuotes, Quote } from "@/services/quoteService";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -49,48 +42,31 @@ const Solicitudes = () => {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [updatingStatus, setUpdatingStatus] = useState<boolean>(false);
   
   const isMobile = useIsMobile();
-  const { currentUser, isAdmin } = useAuth();
   const { toast } = useToast();
   
   useEffect(() => {
     const fetchQuotes = async () => {
       try {
         setIsLoading(true);
-        let fetchedQuotes: Quote[] = [];
         
+        // Fetch quotes from Firebase and localStorage
+        const firebaseQuotes = await getAllQuotes();
         const localQuotes = getLocalQuotes();
         
-        if (currentUser) {
-          if (isAdmin) {
-            const firebaseQuotes = await getAllQuotes();
-            
-            const firebaseIds = firebaseQuotes.map(q => q.id);
-            const uniqueLocalQuotes = localQuotes.filter(q => !firebaseIds.includes(q.id));
-            
-            fetchedQuotes = [...firebaseQuotes, ...uniqueLocalQuotes];
-          } else {
-            const userQuotes = await getUserQuotes(currentUser.uid);
-            
-            const firebaseIds = userQuotes.map(q => q.id);
-            const userLocalQuotes = localQuotes.filter(q => 
-              q.userId === currentUser.uid && !firebaseIds.includes(q.id)
-            );
-            
-            fetchedQuotes = [...userQuotes, ...userLocalQuotes];
-          }
-        } else {
-          fetchedQuotes = localQuotes;
-        }
+        // Combine and deduplicate quotes
+        const allQuoteIds = new Set(firebaseQuotes.map(q => q.id));
+        const uniqueLocalQuotes = localQuotes.filter(q => q.id && !allQuoteIds.has(q.id));
         
-        fetchedQuotes.sort((a, b) => b.timestamp - a.timestamp);
+        const allQuotes = [...firebaseQuotes, ...uniqueLocalQuotes];
+        allQuotes.sort((a, b) => b.timestamp - a.timestamp);
         
-        setQuotes(fetchedQuotes);
-        setFilteredQuotes(fetchedQuotes);
+        setQuotes(allQuotes);
+        setFilteredQuotes(allQuotes);
       } catch (error) {
         console.error("Error al cargar cotizaciones:", error);
+        // Fallback to localStorage
         const localQuotes = getLocalQuotes();
         setQuotes(localQuotes);
         setFilteredQuotes(localQuotes);
@@ -100,7 +76,7 @@ const Solicitudes = () => {
     };
     
     fetchQuotes();
-  }, [currentUser, isAdmin]);
+  }, []);
   
   useEffect(() => {
     let filtered = quotes;
@@ -122,41 +98,6 @@ const Solicitudes = () => {
     
     setFilteredQuotes(filtered);
   }, [quotes, searchTerm, filterStatus]);
-
-  const handleStatusChange = async (newStatus: string) => {
-    if (!selectedQuote || !selectedQuote.id) return;
-    
-    try {
-      setUpdatingStatus(true);
-      
-      if (currentUser) {
-        await updateQuoteStatus(selectedQuote.id, newStatus);
-      } else {
-        updateLocalQuoteStatus(selectedQuote.id, newStatus);
-      }
-      
-      const updatedQuotes = quotes.map(quote => 
-        quote.id === selectedQuote.id ? { ...quote, estado: newStatus } : quote
-      );
-      
-      setQuotes(updatedQuotes);
-      setSelectedQuote({...selectedQuote, estado: newStatus});
-      
-      toast({
-        title: "Estado actualizado",
-        description: `La solicitud ha sido actualizada a "${newStatus}".`,
-      });
-    } catch (error) {
-      console.error("Error al actualizar el estado:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo actualizar el estado de la solicitud.",
-        variant: "destructive",
-      });
-    } finally {
-      setUpdatingStatus(false);
-    }
-  };
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString('es-ES', {
@@ -189,13 +130,10 @@ const Solicitudes = () => {
       <section className="bg-daty-700 text-white py-12">
         <div className="container px-4">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            {isAdmin ? "Panel de Solicitudes" : "Mis Solicitudes"}
+            Solicitudes
           </h1>
           <p className="text-lg md:max-w-2xl">
-            {isAdmin 
-              ? "Administra y gestiona todas las cotizaciones y trabajos solicitados por los usuarios."
-              : "Revisa el estado de tus cotizaciones y trabajos solicitados."
-            }
+            Consulta todas las solicitudes de cotización realizadas.
           </p>
         </div>
       </section>
@@ -241,7 +179,7 @@ const Solicitudes = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{isAdmin ? "Cliente" : "ID"}</TableHead>
+                        <TableHead>ID</TableHead>
                         <TableHead>Fecha</TableHead>
                         <TableHead>Servicio</TableHead>
                         {!isMobile && <TableHead>Descripción</TableHead>}
@@ -255,22 +193,7 @@ const Solicitudes = () => {
                       {filteredQuotes.map((quote) => (
                         <TableRow key={quote.id}>
                           <TableCell className="font-medium">
-                            {isAdmin ? (
-                              <div className="flex items-center gap-2">
-                                {quote.photoURL ? (
-                                  <img 
-                                    src={quote.photoURL} 
-                                    alt={quote.nombre}
-                                    className="w-6 h-6 rounded-full"
-                                  />
-                                ) : (
-                                  <User className="w-5 h-5 text-muted-foreground" />
-                                )}
-                                <span>{truncateText(quote.nombre, 15)}</span>
-                              </div>
-                            ) : (
-                              quote.id
-                            )}
+                            {quote.id}
                           </TableCell>
                           <TableCell>{formatDate(quote.timestamp)}</TableCell>
                           <TableCell>
@@ -311,7 +234,7 @@ const Solicitudes = () => {
                 </div>
               </div>
               
-              {isAdmin && quotes.length > 0 && (
+              {quotes.length > 0 && (
                 <div className="bg-daty-50 p-4 rounded-lg border border-daty-100 mb-8">
                   <h3 className="font-medium text-lg mb-2">Resumen</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -343,12 +266,9 @@ const Solicitudes = () => {
             </>
           ) : (
             <div className="text-center py-10">
-              <h3 className="text-xl font-medium mb-4">No tienes solicitudes registradas</h3>
+              <h3 className="text-xl font-medium mb-4">No hay solicitudes registradas</h3>
               <p className="text-muted-foreground mb-6">
-                {currentUser 
-                  ? "Cuando realices una cotización o solicites un servicio, podrás ver el historial aquí."
-                  : "Realiza una cotización para ver el historial aquí."
-                }
+                Cuando se realice una cotización o se solicite un servicio, podrá ver el historial aquí.
               </p>
               <Button className="bg-daty-600 hover:bg-daty-700" onClick={() => window.location.href = '/cotizar'}>
                 Solicitar Cotización
@@ -426,9 +346,6 @@ const Solicitudes = () => {
                     <p className="text-sm font-medium">Precio final</p>
                     <p className="text-xl font-bold">
                       {formatPriceWithUSDEquivalent(selectedQuote.precio, selectedQuote.moneda)}
-                      <span className="text-xs font-normal text-muted-foreground ml-2">
-                        (incluye 20% de descuento)
-                      </span>
                     </p>
                   </div>
                 </TabsContent>
@@ -463,27 +380,25 @@ const Solicitudes = () => {
                     </p>
                   </div>
                   
-                  {isAdmin && (
-                    <div className="pt-4 mt-4 border-t">
-                      <p className="text-sm font-medium mb-2">Acciones</p>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" 
-                          onClick={() => window.open(`mailto:${selectedQuote.email}?subject=DATY - Solicitud ${selectedQuote.id}`, '_blank')}
+                  <div className="pt-4 mt-4 border-t">
+                    <p className="text-sm font-medium mb-2">Acciones</p>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" 
+                        onClick={() => window.open(`mailto:${selectedQuote.email}?subject=Solicitud ${selectedQuote.id}`, '_blank')}
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        Enviar Email
+                      </Button>
+                      {selectedQuote.telefono && (
+                        <Button variant="outline" size="sm"
+                          onClick={() => window.open(`tel:${selectedQuote.telefono}`, '_blank')}
                         >
-                          <Mail className="h-4 w-4 mr-2" />
-                          Enviar Email
+                          <Phone className="h-4 w-4 mr-2" />
+                          Llamar
                         </Button>
-                        {selectedQuote.telefono && (
-                          <Button variant="outline" size="sm"
-                            onClick={() => window.open(`tel:${selectedQuote.telefono}`, '_blank')}
-                          >
-                            <Phone className="h-4 w-4 mr-2" />
-                            Llamar
-                          </Button>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>
@@ -492,30 +407,6 @@ const Solicitudes = () => {
               <Button variant="secondary" onClick={() => setIsDialogOpen(false)}>
                 Cerrar
               </Button>
-              
-              {isAdmin && (
-                <div className="flex gap-2 items-center">
-                  <Select 
-                    defaultValue={selectedQuote.estado} 
-                    onValueChange={(value) => handleStatusChange(value)}
-                    disabled={updatingStatus}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Seleccionar estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Pendiente">Pendiente</SelectItem>
-                      <SelectItem value="Confirmado">Confirmado</SelectItem>
-                      <SelectItem value="Completado">Completado</SelectItem>
-                      <SelectItem value="Cancelado">Cancelado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  {updatingStatus && (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-daty-600"></div>
-                  )}
-                </div>
-              )}
             </DialogFooter>
           </DialogContent>
         )}

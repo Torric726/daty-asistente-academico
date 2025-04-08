@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
@@ -18,7 +19,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CurrencyCode, currencies, convertPrice, formatCurrency } from "@/services/currencyService";
 import { saveQuote, getLocalQuotes } from "@/services/quoteService";
-import { useAuth } from "@/contexts/AuthContext";
 
 const services = [
   {
@@ -74,13 +74,12 @@ const QuoteForm = () => {
   const [urgent, setUrgent] = useState<boolean>(false);
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>("USD");
   const { toast } = useToast();
-  const { currentUser } = useAuth();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nombre: currentUser?.displayName || "",
-      email: currentUser?.email || "",
+      nombre: "",
+      email: "",
       telefono: "",
       servicio: preselectedService || "",
       dias: 7,
@@ -88,13 +87,6 @@ const QuoteForm = () => {
       moneda: "USD",
     },
   });
-
-  useEffect(() => {
-    if (currentUser) {
-      form.setValue('nombre', currentUser.displayName || '');
-      form.setValue('email', currentUser.email || '');
-    }
-  }, [currentUser, form]);
 
   const calculatePrice = (serviceId: string, days: number) => {
     const selectedService = services.find(s => s.id.toString() === serviceId);
@@ -117,8 +109,7 @@ const QuoteForm = () => {
     return {
       basePrice,
       urgencyFee,
-      total,
-      discounted: total * 0.8
+      total
     };
   };
 
@@ -147,27 +138,21 @@ const QuoteForm = () => {
       precio: priceUSD,
       moneda: values.moneda as CurrencyCode,
       estado: "Pendiente",
-      userId: currentUser?.uid || null,
-      photoURL: currentUser?.photoURL || null
+      userId: null,
+      photoURL: null
     };
 
     try {
-      if (currentUser) {
-        await saveQuote(quoteData);
-      } else {
-        const savedQuotes = getLocalQuotes();
-        savedQuotes.push(quoteData);
-        localStorage.setItem('datyQuotes', JSON.stringify(savedQuotes));
-      }
+      await saveQuote(quoteData);
 
       toast({
-        title: "Cotización enviada",
-        description: `Se ha registrado tu cotización con ID: ${quoteId}. Te contactaremos pronto con los detalles.`,
+        title: "Solicitud enviada",
+        description: `Se ha registrado tu solicitud con ID: ${quoteId}. Te contactaremos pronto con los detalles.`,
       });
 
       form.reset({
-        nombre: currentUser?.displayName || "",
-        email: currentUser?.email || "",
+        nombre: "",
+        email: "",
         telefono: "",
         servicio: "",
         dias: 7,
@@ -178,9 +163,9 @@ const QuoteForm = () => {
       setPriceUSD(null);
       setDisplayPrice(null);
     } catch (error) {
-      console.error('Error al guardar la cotización:', error);
+      console.error('Error al guardar la solicitud:', error);
       toast({
-        title: "Error al enviar la cotización",
+        title: "Error al enviar la solicitud",
         description: "Ocurrió un error al procesar tu solicitud. Inténtalo nuevamente.",
         variant: "destructive",
       });
@@ -190,7 +175,7 @@ const QuoteForm = () => {
   useEffect(() => {
     if (watchService && watchDias) {
       const priceDetails = calculatePrice(watchService, watchDias);
-      const newPriceUSD = priceDetails ? priceDetails.discounted : null;
+      const newPriceUSD = priceDetails ? priceDetails.total : null;
       setPriceUSD(newPriceUSD);
       
       if (newPriceUSD) {
@@ -361,7 +346,7 @@ const QuoteForm = () => {
           <div className="bg-daty-50 p-4 rounded-md border border-daty-100">
             <h3 className="font-medium text-lg mb-1">Tu cotización:</h3>
             <p className="text-2xl font-bold text-daty-700">
-              {formatCurrency(displayPrice, selectedCurrency)} <span className="text-sm font-normal text-muted-foreground">(incluye 20% de descuento)</span>
+              {formatCurrency(displayPrice, selectedCurrency)}
             </p>
             {selectedCurrency !== "USD" && (
               <p className="text-sm text-muted-foreground mt-1">
@@ -374,12 +359,6 @@ const QuoteForm = () => {
         <Button type="submit" className="w-full bg-daty-600 hover:bg-daty-700">
           Solicitar Cotización
         </Button>
-        
-        {!currentUser && (
-          <div className="text-center text-sm text-muted-foreground mt-4">
-            <p>Inicia sesión para acceder a todas las funcionalidades y seguimiento de tus solicitudes.</p>
-          </div>
-        )}
       </form>
     </Form>
   );

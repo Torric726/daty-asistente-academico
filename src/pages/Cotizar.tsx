@@ -20,20 +20,6 @@ const Cotizar = () => {
       <section className="py-16">
         <div className="container px-4">
           <div className="max-w-3xl mx-auto">
-            <div className="bg-white rounded-lg border shadow-sm p-6 mb-8">
-              <div className="flex items-center justify-center mb-6">
-                <div className="bg-daty-100 rounded-full p-3">
-                  <div className="bg-daty-600 text-white rounded-full w-10 h-10 flex items-center justify-center">
-                    <span className="text-lg font-bold">%</span>
-                  </div>
-                </div>
-              </div>
-              <h2 className="text-center text-xl font-bold mb-2">¡20% de Descuento en tu Primer Trabajo!</h2>
-              <p className="text-center text-muted-foreground">
-                Al solicitar tu primera cotización recibirás un 20% de descuento automático en el precio final.
-              </p>
-            </div>
-            
             <QuoteForm />
             
             <div className="mt-12 bg-gray-50 rounded-lg border p-6">
