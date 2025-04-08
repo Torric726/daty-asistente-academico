@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
-import { getAllQuotes, Quote, updateQuoteStatus } from "@/services/quoteService";
+import { getAllQuotes, Quote } from "@/services/quoteService";
 import {
   Tabs,
   TabsContent,
@@ -19,7 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatCurrency, formatPriceWithUSDEquivalent } from "@/services/currencyService";
+import { formatCurrency, formatPriceWithUSDEquivalent, convertToUSD } from "@/services/currencyService";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { Users, PieChart as PieChartIcon, Calendar, DollarSign } from "lucide-react";
 
@@ -51,12 +51,12 @@ const Admin = () => {
   }
 
   const totalQuotes = quotes.length;
-  const totalRevenue = quotes.reduce((sum, quote) => sum + quote.precio, 0);
+  const totalRevenue = quotes.reduce((sum, quote) => sum + convertToUSD(quote.precio, quote.moneda), 0);
   const averageDays = quotes.length > 0 
     ? quotes.reduce((sum, quote) => sum + quote.dias, 0) / quotes.length 
     : 0;
   
-  const serviceData = quotes.reduce<{ name: string, value: number }[]>((acc, quote) => {
+  const serviceData = quotes.reduce((acc: {name: string, value: number}[], quote) => {
     const existingService = acc.find(item => item.name === quote.servicioNombre);
     if (existingService) {
       existingService.value += 1;
@@ -65,8 +65,8 @@ const Admin = () => {
     }
     return acc;
   }, []);
-
-  const statusData = quotes.reduce<{ name: string, value: number }[]>((acc, quote) => {
+  
+  const statusData = quotes.reduce((acc: {name: string, value: number}[], quote) => {
     const existingStatus = acc.find(item => item.name === quote.estado);
     if (existingStatus) {
       existingStatus.value += 1;
@@ -266,10 +266,9 @@ const Admin = () => {
                           </div>
                           <div className="flex flex-col items-end">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              quote.estado === 'Pendiente' ? 'bg-yellow-100 text-yellow-800' :
-                              quote.estado === 'Confirmado' ? 'bg-green-100 text-green-800' :
-                              quote.estado === 'Completado' ? 'bg-blue-100 text-blue-800' :
-                              'bg-red-100 text-red-800'
+                              STATUS_COLORS[quote.estado as keyof typeof STATUS_COLORS] ? 
+                                `bg-opacity-20 bg-${STATUS_COLORS[quote.estado as keyof typeof STATUS_COLORS].substring(1)} text-${STATUS_COLORS[quote.estado as keyof typeof STATUS_COLORS].substring(1)}` : 
+                                'bg-gray-100 text-gray-800'
                             }`}>
                               {quote.estado}
                             </span>

@@ -16,8 +16,9 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { CurrencyCode, currencies, convertPrice, formatCurrency } from "@/services/currencyService";
+import { CurrencyCode, currencies, convertPrice, formatCurrency, formatPriceWithUSDEquivalent } from "@/services/currencyService";
 import { saveQuote, getLocalQuotes } from "@/services/quoteService";
+import { useAuth } from "@/contexts/AuthContext";
 
 const services = [
   {
@@ -68,17 +69,18 @@ const QuoteForm = () => {
   const [searchParams] = useSearchParams();
   const preselectedService = searchParams.get("service");
   
-  const [priceUSD, setPriceUSD] = useState<number | null>(null);
-  const [displayPrice, setDisplayPrice] = useState<number | null>(null);
+  const [price, setPrice] = useState<number | null>(null);
+  const [convertedPrice, setConvertedPrice] = useState<number | null>(null);
   const [urgent, setUrgent] = useState<boolean>(false);
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>("USD");
   const { toast } = useToast();
+  const { currentUser } = useAuth();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nombre: "",
-      email: "",
+      nombre: currentUser?.displayName || "",
+      email: currentUser?.email || "",
       telefono: "",
       servicio: preselectedService || "",
       dias: 7,
@@ -86,6 +88,13 @@ const QuoteForm = () => {
       moneda: "USD",
     },
   });
+
+  useEffect(() => {
+    if (currentUser) {
+      form.setValue('nombre', currentUser.displayName || '');
+      form.setValue('email', currentUser.email || '');
+    }
+  }, [currentUser, form]);
 
   const calculatePrice = (serviceId: string, days: number) => {
     const selectedService = services.find(s => s.id.toString() === serviceId);
@@ -108,7 +117,8 @@ const QuoteForm = () => {
     return {
       basePrice,
       urgencyFee,
-      total
+      total,
+      discounted: total * 0.8
     };
   };
 
@@ -117,66 +127,62 @@ const QuoteForm = () => {
   const watchMoneda = form.watch("moneda");
 
   const onSubmit = async (values: FormValues) => {
-    if (!priceUSD) return;
+    if (!price) return;
     
     const quoteId = `DATY-${Math.floor(1000 + Math.random() * 9000)}`;
     
     const selectedService = services.find(s => s.id.toString() === values.servicio);
     const serviceName = selectedService ? selectedService.name : "Servicio desconocido";
     
-    let phoneNumber = values.telefono;
-    if (!phoneNumber.startsWith('+')) {
-      phoneNumber = phoneNumber.startsWith('591') ? `+${phoneNumber}` : `+591${phoneNumber}`;
-    }
+    const originalPriceUSD = price;
     
     const quoteData = {
       id: quoteId,
       timestamp: Date.now(),
       nombre: values.nombre,
       email: values.email,
-      telefono: phoneNumber,
+      telefono: values.telefono,
       servicio: values.servicio,
       servicioNombre: serviceName,
       dias: values.dias,
       descripcion: values.descripcion,
-      precio: priceUSD,
+      precio: originalPriceUSD,
       moneda: values.moneda as CurrencyCode,
       estado: "Pendiente",
-      userId: null,
-      photoURL: null
+      userId: currentUser?.uid || null,
+      photoURL: currentUser?.photoURL || null
     };
 
     try {
-      toast({
-        title: "Procesando solicitud...",
-        description: "Estamos registrando tu cotización, espera un momento.",
-      });
-      
-      setTimeout(async () => {
+      if (currentUser) {
         await saveQuote(quoteData);
+      } else {
+        const savedQuotes = getLocalQuotes();
+        savedQuotes.push(quoteData);
+        localStorage.setItem('datyQuotes', JSON.stringify(savedQuotes));
+      }
 
-        toast({
-          title: "Solicitud enviada",
-          description: `Se ha registrado tu solicitud con ID: ${quoteId}. Te contactaremos pronto con los detalles.`,
-        });
-
-        form.reset({
-          nombre: "",
-          email: "",
-          telefono: "",
-          servicio: "",
-          dias: 7,
-          descripcion: "",
-          moneda: "USD",
-        });
-
-        setPriceUSD(null);
-        setDisplayPrice(null);
-      }, 100);
-    } catch (error) {
-      console.error('Error al guardar la solicitud:', error);
       toast({
-        title: "Error al enviar la solicitud",
+        title: "Cotización enviada",
+        description: `Se ha registrado tu cotización con ID: ${quoteId}. Te contactaremos pronto con los detalles.`,
+      });
+
+      form.reset({
+        nombre: currentUser?.displayName || "",
+        email: currentUser?.email || "",
+        telefono: "",
+        servicio: "",
+        dias: 7,
+        descripcion: "",
+        moneda: "USD",
+      });
+
+      setPrice(null);
+      setConvertedPrice(null);
+    } catch (error) {
+      console.error('Error al guardar la cotización:', error);
+      toast({
+        title: "Error al enviar la cotización",
         description: "Ocurrió un error al procesar tu solicitud. Inténtalo nuevamente.",
         variant: "destructive",
       });
@@ -186,16 +192,12 @@ const QuoteForm = () => {
   useEffect(() => {
     if (watchService && watchDias) {
       const priceDetails = calculatePrice(watchService, watchDias);
-      const newPriceUSD = priceDetails ? priceDetails.total : null;
-      setPriceUSD(newPriceUSD);
+      const newPrice = priceDetails ? priceDetails.discounted : null;
+      setPrice(newPrice);
       
-      if (newPriceUSD) {
-        if (watchMoneda === 'USD') {
-          setDisplayPrice(newPriceUSD);
-        } else {
-          const converted = convertPrice(newPriceUSD, watchMoneda as CurrencyCode);
-          setDisplayPrice(converted);
-        }
+      if (newPrice) {
+        const converted = convertPrice(newPrice, watchMoneda as CurrencyCode);
+        setConvertedPrice(converted);
       }
     }
   }, [watchService, watchDias, watchMoneda]);
@@ -353,15 +355,15 @@ const QuoteForm = () => {
           </div>
         </div>
 
-        {displayPrice && (
+        {convertedPrice && (
           <div className="bg-daty-50 p-4 rounded-md border border-daty-100">
             <h3 className="font-medium text-lg mb-1">Tu cotización:</h3>
             <p className="text-2xl font-bold text-daty-700">
-              {formatCurrency(displayPrice, selectedCurrency)}
+              {formatCurrency(convertedPrice, selectedCurrency)} <span className="text-sm font-normal text-muted-foreground">(incluye 20% de descuento)</span>
             </p>
             {selectedCurrency !== "USD" && (
               <p className="text-sm text-muted-foreground mt-1">
-                Equivalente a ${priceUSD?.toFixed(2)} USD
+                Equivalente a ${price?.toFixed(2)} USD
               </p>
             )}
           </div>
@@ -370,6 +372,12 @@ const QuoteForm = () => {
         <Button type="submit" className="w-full bg-daty-600 hover:bg-daty-700">
           Solicitar Cotización
         </Button>
+        
+        {!currentUser && (
+          <div className="text-center text-sm text-muted-foreground mt-4">
+            <p>Inicia sesión para acceder a todas las funcionalidades y seguimiento de tus solicitudes.</p>
+          </div>
+        )}
       </form>
     </Form>
   );

@@ -25,7 +25,7 @@ export const currencies = [
   { code: 'EUR', name: 'Euros', symbol: '€' },
 ];
 
-// Función para convertir precios de USD a cualquier moneda
+// Función para convertir precios entre monedas
 export const convertPrice = (amount: number, toCurrency: CurrencyCode): number => {
   if (!exchangeRates[toCurrency]) {
     return amount; // Si la moneda no existe, devolver el monto original
@@ -42,7 +42,7 @@ export const formatCurrency = (amount: number, currencyCode: CurrencyCode): stri
   return `${currency.symbol}${amount.toFixed(2)}`;
 };
 
-// Función para convertir de cualquier moneda a USD
+// Nueva función para convertir de cualquier moneda a USD (para mostrar equivalentes)
 export const convertToUSD = (amount: number, fromCurrency: CurrencyCode): number => {
   if (fromCurrency === 'USD') return amount;
   if (!exchangeRates[fromCurrency]) return amount;
@@ -51,17 +51,16 @@ export const convertToUSD = (amount: number, fromCurrency: CurrencyCode): number
   return amount / exchangeRates[fromCurrency];
 };
 
-// Función para mostrar el precio en formato original y su equivalente en USD
+// Nueva función para mostrar el precio en formato original y su equivalente en USD
 export const formatPriceWithUSDEquivalent = (amount: number, currencyCode: CurrencyCode): string => {
+  const formattedPrice = formatCurrency(amount, currencyCode);
+  
   // Si ya está en USD, solo devolver el formato
   if (currencyCode === 'USD') {
-    return formatCurrency(amount, currencyCode);
+    return formattedPrice;
   }
   
-  // El amount ya está en USD, así que lo convertimos a la moneda local
-  const convertedAmount = convertPrice(amount, currencyCode);
-  const formattedConvertedPrice = formatCurrency(convertedAmount, currencyCode);
-  const formattedUsdPrice = formatCurrency(amount, 'USD');
-  
-  return `${formattedConvertedPrice} (≈ ${formattedUsdPrice})`;
+  // Convertir a USD y formatear
+  const usdEquivalent = convertToUSD(amount, currencyCode);
+  return `${formattedPrice} (≈ $${usdEquivalent.toFixed(2)} USD)`;
 };

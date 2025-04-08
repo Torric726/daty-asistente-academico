@@ -3,15 +3,13 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyA-3gH_HKYJvgCRMIrY6YTCr4aObyxtaF8",
-  authDomain: "adrian-23900.firebaseapp.com",
-  projectId: "adrian-23900",
-  storageBucket: "adrian-23900.appspot.com",
-  messagingSenderId: "476550103380",
-  appId: "1:476550103380:web:0fe66dd695a31988e1c8c1",
-  measurementId: "G-G5QR391CB7"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAp_G-zWxYdZ1mnoB2cEmZkrG9TFnFJBnE",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "daty-app-demo.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "daty-app-demo",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "daty-app-demo.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abcdef123456"
 };
 
 // Inicializar Firebase

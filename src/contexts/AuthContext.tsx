@@ -52,17 +52,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signInWithGoogle = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      console.log("Inicio de sesión exitoso:", result.user.email);
+      await signInWithPopup(auth, googleProvider);
       toast({
         title: "Inicio de sesión exitoso",
-        description: `Bienvenido ${result.user.displayName || result.user.email}`,
+        description: "Has iniciado sesión con Google correctamente.",
       });
     } catch (error) {
       console.error('Error al iniciar sesión con Google:', error);
       toast({
         title: "Error al iniciar sesión",
-        description: "No se pudo iniciar sesión con Google. Por favor, intenta de nuevo más tarde.",
+        description: "Hubo un problema al iniciar sesión con Google. Intenta de nuevo.",
         variant: "destructive",
       });
     }

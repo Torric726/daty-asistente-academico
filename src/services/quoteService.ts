@@ -1,5 +1,5 @@
 
-import { collection, getDocs, addDoc, Timestamp, DocumentData, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, query, where, Timestamp, DocumentData } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { CurrencyCode } from "./currencyService";
 
@@ -20,96 +20,25 @@ export interface Quote {
   photoURL?: string | null;
 }
 
-// Guardar solicitud en Firestore y localStorage
+// Guardar cotización en Firestore
 export const saveQuote = async (quote: Omit<Quote, 'id'>) => {
   try {
-    // Optimización: reducir tamaño de datos a guardar
-    const quoteData = {
+    const docRef = await addDoc(collection(db, 'quotes'), {
       ...quote,
       timestamp: Timestamp.fromMillis(quote.timestamp),
-    };
-    
-    // Guardar en Firebase 
-    const docRef = await addDoc(collection(db, 'quotes'), quoteData);
-    
-    // Guardar también en localStorage como respaldo
-    const quoteWithId = { id: docRef.id, ...quote };
-    saveQuoteToLocalStorage(quoteWithId);
-    
-    return quoteWithId;
+    });
+    return { id: docRef.id, ...quote };
   } catch (error) {
-    console.error("Error al guardar la solicitud en Firebase:", error);
-    
-    // Fallback: Si falla Firebase, guardar solo en localStorage
-    const localQuoteId = `LOCAL-${Math.floor(1000 + Math.random() * 9000)}`;
-    const quoteWithId = { id: localQuoteId, ...quote };
-    saveQuoteToLocalStorage(quoteWithId);
-    
-    return quoteWithId;
+    console.error("Error al guardar la cotización:", error);
+    throw error;
   }
 };
 
-// Función para actualizar el estado de una cotización
-export const updateQuoteStatus = async (quoteId: string, newStatus: string): Promise<boolean> => {
-  try {
-    // Verificar si es un ID local o de Firebase
-    if (quoteId.startsWith('LOCAL-')) {
-      // Actualizar en localStorage
-      const quotes = getLocalQuotes();
-      const quoteIndex = quotes.findIndex(q => q.id === quoteId);
-      
-      if (quoteIndex !== -1) {
-        quotes[quoteIndex].estado = newStatus;
-        localStorage.setItem('quotes', JSON.stringify(quotes));
-        return true;
-      }
-      return false;
-    } else {
-      // Actualizar en Firebase
-      const quoteRef = doc(db, 'quotes', quoteId);
-      await updateDoc(quoteRef, {
-        estado: newStatus
-      });
-      
-      // También actualizar en localStorage si existe
-      const quotes = getLocalQuotes();
-      const quoteIndex = quotes.findIndex(q => q.id === quoteId);
-      if (quoteIndex !== -1) {
-        quotes[quoteIndex].estado = newStatus;
-        localStorage.setItem('quotes', JSON.stringify(quotes));
-      }
-      
-      return true;
-    }
-  } catch (error) {
-    console.error("Error al actualizar el estado de la cotización:", error);
-    return false;
-  }
-};
-
-// Función para guardar una solicitud en localStorage
-const saveQuoteToLocalStorage = (quote: Quote) => {
-  try {
-    const savedQuotes = getLocalQuotes();
-    const existingQuoteIndex = savedQuotes.findIndex(q => q.id === quote.id);
-    
-    if (existingQuoteIndex !== -1) {
-      savedQuotes[existingQuoteIndex] = quote;
-    } else {
-      savedQuotes.push(quote);
-    }
-    
-    localStorage.setItem('quotes', JSON.stringify(savedQuotes));
-  } catch (error) {
-    console.error("Error al guardar en localStorage:", error);
-  }
-};
-
-// Obtener todas las solicitudes
+// Obtener todas las cotizaciones (solo para admin)
 export const getAllQuotes = async (): Promise<Quote[]> => {
   try {
     const quotesSnapshot = await getDocs(collection(db, 'quotes'));
-    const firebaseQuotes = quotesSnapshot.docs.map(doc => {
+    return quotesSnapshot.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -117,31 +46,40 @@ export const getAllQuotes = async (): Promise<Quote[]> => {
         timestamp: data.timestamp.toMillis(),
       } as Quote;
     });
-    
-    // Obtener también solicitudes locales para asegurar que todas estén disponibles
-    const localQuotes = getLocalQuotes();
-    
-    // Filtrar para evitar duplicados (priorizar Firebase)
-    const firebaseIds = firebaseQuotes.map(q => q.id);
-    const uniqueLocalQuotes = localQuotes.filter(q => !firebaseIds.includes(q.id || ''));
-    
-    return [...firebaseQuotes, ...uniqueLocalQuotes].sort((a, b) => b.timestamp - a.timestamp);
   } catch (error) {
-    console.error("Error al obtener las solicitudes:", error);
-    // Fallback a localStorage si Firebase falla
-    return getLocalQuotes();
+    console.error("Error al obtener las cotizaciones:", error);
+    throw error;
   }
 };
 
-// Función para solicitudes en localStorage
+// Obtener cotizaciones de un usuario específico
+export const getUserQuotes = async (userId: string): Promise<Quote[]> => {
+  try {
+    const q = query(collection(db, 'quotes'), where("userId", "==", userId));
+    const quotesSnapshot = await getDocs(q);
+    return quotesSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        timestamp: data.timestamp.toMillis(),
+      } as Quote;
+    });
+  } catch (error) {
+    console.error("Error al obtener las cotizaciones del usuario:", error);
+    throw error;
+  }
+};
+
+// Función para cotizaciones en localStorage (fallback y compatibilidad)
 export const getLocalQuotes = (): Quote[] => {
   try {
-    const savedQuotes = localStorage.getItem('quotes');
+    const savedQuotes = localStorage.getItem('datyQuotes');
     if (savedQuotes) {
       return JSON.parse(savedQuotes);
     }
   } catch (error) {
-    console.error("Error al cargar solicitudes del localStorage:", error);
+    console.error("Error al cargar cotizaciones del localStorage:", error);
   }
   return [];
 };

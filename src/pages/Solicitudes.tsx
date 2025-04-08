@@ -9,9 +9,10 @@ import {
   TabsList, 
   TabsTrigger 
 } from "@/components/ui/tabs";
-import { formatCurrency, formatPriceWithUSDEquivalent } from "@/services/currencyService";
+import { formatCurrency, CurrencyCode, formatPriceWithUSDEquivalent } from "@/services/currencyService";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getAllQuotes, getLocalQuotes, Quote } from "@/services/quoteService";
+import { useAuth } from "@/contexts/AuthContext";
+import { getAllQuotes, getUserQuotes, getLocalQuotes, Quote } from "@/services/quoteService";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -19,9 +20,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
   SlidersHorizontal,
@@ -43,36 +42,37 @@ const Solicitudes = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   
   const isMobile = useIsMobile();
-  const { toast } = useToast();
+  const { currentUser, isAdmin } = useAuth();
   
   useEffect(() => {
     const fetchQuotes = async () => {
       try {
         setIsLoading(true);
+        let fetchedQuotes: Quote[] = [];
         
-        const firebaseQuotes = await getAllQuotes();
-        const localQuotes = getLocalQuotes();
+        if (currentUser) {
+          if (isAdmin) {
+            fetchedQuotes = await getAllQuotes();
+          } else {
+            fetchedQuotes = await getUserQuotes(currentUser.uid);
+          }
+        } else {
+          fetchedQuotes = getLocalQuotes();
+        }
         
-        const allQuoteIds = new Set(firebaseQuotes.map(q => q.id));
-        const uniqueLocalQuotes = localQuotes.filter(q => q.id && !allQuoteIds.has(q.id));
+        fetchedQuotes.sort((a, b) => b.timestamp - a.timestamp);
         
-        const allQuotes = [...firebaseQuotes, ...uniqueLocalQuotes];
-        allQuotes.sort((a, b) => b.timestamp - a.timestamp);
-        
-        setQuotes(allQuotes);
-        setFilteredQuotes(allQuotes);
+        setQuotes(fetchedQuotes);
+        setFilteredQuotes(fetchedQuotes);
       } catch (error) {
         console.error("Error al cargar cotizaciones:", error);
-        const localQuotes = getLocalQuotes();
-        setQuotes(localQuotes);
-        setFilteredQuotes(localQuotes);
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchQuotes();
-  }, []);
+  }, [currentUser, isAdmin]);
   
   useEffect(() => {
     let filtered = quotes;
@@ -112,13 +112,6 @@ const Solicitudes = () => {
     setIsDialogOpen(true);
   };
 
-  const formatPhoneNumber = (phone: string) => {
-    if (phone.startsWith('+')) {
-      return phone;
-    }
-    return `+591${phone.startsWith('591') ? phone.substring(3) : phone}`;
-  };
-
   const statusClasses = {
     Pendiente: 'bg-yellow-100 text-yellow-800',
     Confirmado: 'bg-green-100 text-green-800',
@@ -133,10 +126,13 @@ const Solicitudes = () => {
       <section className="bg-daty-700 text-white py-12">
         <div className="container px-4">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            Solicitudes
+            {isAdmin ? "Panel de Solicitudes" : "Mis Solicitudes"}
           </h1>
           <p className="text-lg md:max-w-2xl">
-            Consulta todas las solicitudes de cotización realizadas.
+            {isAdmin 
+              ? "Administra y gestiona todas las cotizaciones y trabajos solicitados por los usuarios."
+              : "Revisa el estado de tus cotizaciones y trabajos solicitados."
+            }
           </p>
         </div>
       </section>
@@ -182,7 +178,7 @@ const Solicitudes = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>ID</TableHead>
+                        <TableHead>{isAdmin ? "Cliente" : "ID"}</TableHead>
                         <TableHead>Fecha</TableHead>
                         <TableHead>Servicio</TableHead>
                         {!isMobile && <TableHead>Descripción</TableHead>}
@@ -196,7 +192,22 @@ const Solicitudes = () => {
                       {filteredQuotes.map((quote) => (
                         <TableRow key={quote.id}>
                           <TableCell className="font-medium">
-                            {quote.id}
+                            {isAdmin ? (
+                              <div className="flex items-center gap-2">
+                                {quote.photoURL ? (
+                                  <img 
+                                    src={quote.photoURL} 
+                                    alt={quote.nombre}
+                                    className="w-6 h-6 rounded-full"
+                                  />
+                                ) : (
+                                  <User className="w-5 h-5 text-muted-foreground" />
+                                )}
+                                <span>{truncateText(quote.nombre, 15)}</span>
+                              </div>
+                            ) : (
+                              quote.id
+                            )}
                           </TableCell>
                           <TableCell>{formatDate(quote.timestamp)}</TableCell>
                           <TableCell>
@@ -237,7 +248,7 @@ const Solicitudes = () => {
                 </div>
               </div>
               
-              {quotes.length > 0 && (
+              {isAdmin && quotes.length > 0 && (
                 <div className="bg-daty-50 p-4 rounded-lg border border-daty-100 mb-8">
                   <h3 className="font-medium text-lg mb-2">Resumen</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -269,9 +280,12 @@ const Solicitudes = () => {
             </>
           ) : (
             <div className="text-center py-10">
-              <h3 className="text-xl font-medium mb-4">No hay solicitudes registradas</h3>
+              <h3 className="text-xl font-medium mb-4">No tienes solicitudes registradas</h3>
               <p className="text-muted-foreground mb-6">
-                Cuando se realice una cotización o se solicite un servicio, podrá ver el historial aquí.
+                {currentUser 
+                  ? "Cuando realices una cotización o solicites un servicio, podrás ver el historial aquí."
+                  : "Inicia sesión para ver tus solicitudes o realiza una nueva cotización."
+                }
               </p>
               <Button className="bg-daty-600 hover:bg-daty-700" onClick={() => window.location.href = '/cotizar'}>
                 Solicitar Cotización
@@ -349,6 +363,9 @@ const Solicitudes = () => {
                     <p className="text-sm font-medium">Precio final</p>
                     <p className="text-xl font-bold">
                       {formatPriceWithUSDEquivalent(selectedQuote.precio, selectedQuote.moneda)}
+                      <span className="text-xs font-normal text-muted-foreground ml-2">
+                        (incluye 20% de descuento)
+                      </span>
                     </p>
                   </div>
                 </TabsContent>
@@ -383,41 +400,41 @@ const Solicitudes = () => {
                     </p>
                   </div>
                   
-                  <div className="pt-4 mt-4 border-t">
-                    <p className="text-sm font-medium mb-2">Acciones</p>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" 
-                        onClick={() => {
-                          const subject = encodeURIComponent(`Cotización DATY - Solicitud ${selectedQuote.id}`);
-                          const body = encodeURIComponent(`Hola ${selectedQuote.nombre}, \n\nNos comunicamos con respecto a tu solicitud de cotización ${selectedQuote.id} para el servicio: ${selectedQuote.servicioNombre}.\n\nSaludos,\nEquipo DATY`);
-                          window.open(`mailto:${selectedQuote.email}?subject=${subject}&body=${body}`, '_blank');
-                        }}
-                      >
-                        <Mail className="h-4 w-4 mr-2" />
-                        Enviar Email
-                      </Button>
-                      {selectedQuote.telefono && (
-                        <Button variant="outline" size="sm"
-                          onClick={() => {
-                            const phoneNumber = formatPhoneNumber(selectedQuote.telefono);
-                            window.open(`tel:${phoneNumber}`, '_blank');
-                          }}
+                  {isAdmin && (
+                    <div className="pt-4 mt-4 border-t">
+                      <p className="text-sm font-medium mb-2">Acciones</p>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" 
+                          onClick={() => window.open(`mailto:${selectedQuote.email}?subject=DATY - Solicitud ${selectedQuote.id}`, '_blank')}
                         >
-                          <Phone className="h-4 w-4 mr-2" />
-                          Llamar
+                          <Mail className="h-4 w-4 mr-2" />
+                          Enviar Email
                         </Button>
-                      )}
+                        {selectedQuote.telefono && (
+                          <Button variant="outline" size="sm"
+                            onClick={() => window.open(`tel:${selectedQuote.telefono}`, '_blank')}
+                          >
+                            <Phone className="h-4 w-4 mr-2" />
+                            Llamar
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </TabsContent>
               </Tabs>
             </div>
             
-            <DialogFooter>
+            <div className="flex justify-end gap-2">
               <Button variant="secondary" onClick={() => setIsDialogOpen(false)}>
                 Cerrar
               </Button>
-            </DialogFooter>
+              {isAdmin && (
+                <Button className="bg-daty-600 hover:bg-daty-700">
+                  Actualizar Estado
+                </Button>
+              )}
+            </div>
           </DialogContent>
         )}
       </Dialog>

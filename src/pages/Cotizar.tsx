@@ -2,8 +2,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import QuoteForm from "@/components/QuoteForm";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { InfoIcon } from "lucide-react";
 
 const Cotizar = () => {
   return (
@@ -22,12 +20,19 @@ const Cotizar = () => {
       <section className="py-16">
         <div className="container px-4">
           <div className="max-w-3xl mx-auto">
-            <Alert className="mb-6 bg-blue-50 border-blue-200">
-              <InfoIcon className="h-5 w-5 text-blue-600" />
-              <AlertDescription>
-                Las cotizaciones son evaluadas por nuestros profesionales. Cualquier descuento será analizado individualmente por el asesor asignado a su proyecto.
-              </AlertDescription>
-            </Alert>
+            <div className="bg-white rounded-lg border shadow-sm p-6 mb-8">
+              <div className="flex items-center justify-center mb-6">
+                <div className="bg-daty-100 rounded-full p-3">
+                  <div className="bg-daty-600 text-white rounded-full w-10 h-10 flex items-center justify-center">
+                    <span className="text-lg font-bold">%</span>
+                  </div>
+                </div>
+              </div>
+              <h2 className="text-center text-xl font-bold mb-2">¡20% de Descuento en tu Primer Trabajo!</h2>
+              <p className="text-center text-muted-foreground">
+                Al solicitar tu primera cotización recibirás un 20% de descuento automático en el precio final.
+              </p>
+            </div>
             
             <QuoteForm />
             
