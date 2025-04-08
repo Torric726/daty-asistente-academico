@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -51,11 +50,9 @@ const Solicitudes = () => {
       try {
         setIsLoading(true);
         
-        // Fetch quotes from Firebase and localStorage
         const firebaseQuotes = await getAllQuotes();
         const localQuotes = getLocalQuotes();
         
-        // Combine and deduplicate quotes
         const allQuoteIds = new Set(firebaseQuotes.map(q => q.id));
         const uniqueLocalQuotes = localQuotes.filter(q => q.id && !allQuoteIds.has(q.id));
         
@@ -66,7 +63,6 @@ const Solicitudes = () => {
         setFilteredQuotes(allQuotes);
       } catch (error) {
         console.error("Error al cargar cotizaciones:", error);
-        // Fallback to localStorage
         const localQuotes = getLocalQuotes();
         setQuotes(localQuotes);
         setFilteredQuotes(localQuotes);
@@ -114,6 +110,13 @@ const Solicitudes = () => {
   const handleViewDetails = (quote: Quote) => {
     setSelectedQuote(quote);
     setIsDialogOpen(true);
+  };
+
+  const formatPhoneNumber = (phone: string) => {
+    if (phone.startsWith('+')) {
+      return phone;
+    }
+    return `+591${phone.startsWith('591') ? phone.substring(3) : phone}`;
   };
 
   const statusClasses = {
@@ -384,14 +387,21 @@ const Solicitudes = () => {
                     <p className="text-sm font-medium mb-2">Acciones</p>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" 
-                        onClick={() => window.open(`mailto:${selectedQuote.email}?subject=Solicitud ${selectedQuote.id}`, '_blank')}
+                        onClick={() => {
+                          const subject = encodeURIComponent(`Cotización DATY - Solicitud ${selectedQuote.id}`);
+                          const body = encodeURIComponent(`Hola ${selectedQuote.nombre}, \n\nNos comunicamos con respecto a tu solicitud de cotización ${selectedQuote.id} para el servicio: ${selectedQuote.servicioNombre}.\n\nSaludos,\nEquipo DATY`);
+                          window.open(`mailto:${selectedQuote.email}?subject=${subject}&body=${body}`, '_blank');
+                        }}
                       >
                         <Mail className="h-4 w-4 mr-2" />
                         Enviar Email
                       </Button>
                       {selectedQuote.telefono && (
                         <Button variant="outline" size="sm"
-                          onClick={() => window.open(`tel:${selectedQuote.telefono}`, '_blank')}
+                          onClick={() => {
+                            const phoneNumber = formatPhoneNumber(selectedQuote.telefono);
+                            window.open(`tel:${phoneNumber}`, '_blank');
+                          }}
                         >
                           <Phone className="h-4 w-4 mr-2" />
                           Llamar

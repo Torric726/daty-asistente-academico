@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ChevronRight, Clock, Award, CheckCircle, Users, LineChart, FileText, BookOpen } from "lucide-react";
@@ -8,7 +7,6 @@ import FeatureCard from "@/components/FeatureCard";
 import TestimonialCard from "@/components/TestimonialCard";
 import ServiceCard from "@/components/ServiceCard";
 
-// Servicios destacados
 const featuredServices = [
   {
     id: 1,
@@ -49,7 +47,6 @@ const featuredServices = [
   }
 ];
 
-// Características principales
 const features = [
   {
     icon: Clock,
@@ -73,7 +70,6 @@ const features = [
   }
 ];
 
-// Testimonios
 const testimonials = [
   {
     name: "María López",
@@ -100,49 +96,39 @@ const Index = () => {
     <>
       <Navbar />
       
-      {/* Hero */}
-      <section className="bg-gradient-to-r from-daty-900 to-daty-700 text-white py-16 md:py-24">
-        <div className="container px-4 md:flex items-center">
-          <div className="md:w-1/2 mb-8 md:mb-0">
-            <h1 className="text-3xl md:text-5xl font-bold leading-tight mb-4">
-              Tu Asistente Académico Digital
-            </h1>
-            <p className="text-lg md:text-xl mb-8 md:max-w-md">
-              Servicios académicos profesionales para estudiantes universitarios. Soluciones a la medida para tus proyectos y tareas.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" asChild className="bg-white text-daty-800 hover:bg-gray-100">
-                <Link to="/cotizar">Solicitar Cotización</Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild className="border-white text-white hover:bg-daty-600">
-                <Link to="/servicios">
-                  Ver Servicios
-                  <ChevronRight className="ml-2" size={16} />
-                </Link>
-              </Button>
+      <section className="hero-section min-h-[70vh] flex items-center bg-gradient-to-br from-daty-700 to-daty-900 text-white">
+        <div className="container mx-auto px-4 py-16">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
+                Servicios Profesionales de Análisis y Gestión de Datos
+              </h1>
+              <p className="text-xl mb-8 text-daty-100">
+                Soluciones digitales especializadas para individuos, empresas y proyectos.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button size="lg" className="bg-daty-500 hover:bg-daty-600">
+                  <Link to="/servicios">Ver Servicios</Link>
+                </Button>
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                  <Link to="/como-funciona">Cómo Funciona</Link>
+                </Button>
+              </div>
+              <div className="mt-6 p-4 bg-white/10 rounded-lg text-sm">
+                <p className="font-medium">Nota: Cualquier descuento será evaluado y aplicado por el asesor que quede a cargo de su proyecto.</p>
+              </div>
             </div>
-          </div>
-          <div className="md:w-1/2 md:pl-8">
-            <div className="bg-white/10 backdrop-blur p-6 rounded-lg border border-white/20">
-              <h2 className="text-xl font-bold mb-4">20% de Descuento</h2>
-              <p className="mb-4">En tu primer trabajo con nosotros. Sólo tienes que registrarte y solicitar tu cotización.</p>
-              <ul className="space-y-2">
-                <li className="flex items-center">
-                  <CheckCircle size={16} className="mr-2 text-green-400" /> Trabajo personalizado
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle size={16} className="mr-2 text-green-400" /> Asesores expertos
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle size={16} className="mr-2 text-green-400" /> Garantía de calidad
-                </li>
-              </ul>
+            <div className="hidden md:block">
+              <img 
+                src="/placeholder.svg" 
+                alt="Servicios de Análisis de Datos" 
+                className="w-full h-auto rounded-lg shadow-lg"
+              />
             </div>
           </div>
         </div>
       </section>
       
-      {/* Servicios Destacados */}
       <section className="py-16 bg-gray-50">
         <div className="container px-4">
           <div className="text-center mb-12">
@@ -177,7 +163,6 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Características */}
       <section className="py-16">
         <div className="container px-4">
           <div className="text-center mb-12">
@@ -200,7 +185,6 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Cómo funciona */}
       <section className="py-16 bg-daty-50">
         <div className="container px-4">
           <div className="text-center mb-12">
@@ -253,7 +237,6 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Testimonios */}
       <section className="py-16">
         <div className="container px-4">
           <div className="text-center mb-12">
@@ -277,7 +260,6 @@ const Index = () => {
         </div>
       </section>
       
-      {/* CTA */}
       <section className="py-16 bg-gradient-to-r from-daty-700 to-daty-500 text-white">
         <div className="container px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">¿Listo para comenzar?</h2>

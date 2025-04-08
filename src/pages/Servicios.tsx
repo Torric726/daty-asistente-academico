@@ -3,79 +3,85 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ServiceCard from "@/components/ServiceCard";
 
-// Lista completa de servicios
+// Lista completa de servicios con descripciones mejoradas
 const services = [
   {
     id: 1,
     name: "ANÁLISIS DE DATOS",
     price: 15,
-    description: "Encuestas y análisis, estadísticas descriptivas, análisis y limpieza de bases de datos, visualización de datos y gráficos personalizados, elaboración de reportes y consultas.",
+    description: "Extraemos valor de la información disponible, identificando tendencias, patrones y oportunidades ocultas que otros no pueden ver. Nuestro análisis profesional te dará ventaja competitiva.",
     features: [
-      "Encuestas y análisis",
-      "Estadísticas descriptivas",
-      "Análisis y limpieza de bases de datos",
+      "Encuestas y análisis avanzados",
+      "Estadísticas descriptivas e inferenciales",
+      "Análisis y limpieza de bases de datos complejas",
       "Visualización de datos y gráficos personalizados",
-      "Elaboración de reportes y consultas"
+      "Elaboración de reportes ejecutivos y consultas especializadas"
     ],
-    popular: true
+    popular: true,
+    details: "Este servicio te permite obtener información valiosa a partir de tus datos, identificando tendencias que te darán ventaja sobre tu competencia. Utilizamos herramientas avanzadas para extraer insights que impulsen la toma de decisiones estratégicas, optimizando tus procesos y maximizando tus resultados. Perfecto para empresas que buscan mejorar su posición en el mercado o individuos con proyectos de investigación detallados."
   },
   {
     id: 2,
     name: "TAREAS Y TRABAJOS DIGITALES",
     price: 9,
-    description: "Resúmenes y esquemas, presentaciones y diapositivas, creación de formularios digitales, revisión y corrección de trabajos académicos.",
+    description: "Optimizamos tu contenido digital con soluciones profesionales. Desde resúmenes precisos hasta presentaciones impactantes, te ayudamos a destacar con materiales de alta calidad.",
     features: [
-      "Resúmenes y esquemas",
-      "Presentaciones y diapositivas",
-      "Creación de formularios digitales",
-      "Revisión y corrección de trabajos académicos"
-    ]
+      "Resúmenes y esquemas profesionales",
+      "Presentaciones y diapositivas impactantes",
+      "Creación de formularios digitales interactivos",
+      "Revisión y corrección de trabajos con estándares profesionales"
+    ],
+    details: "Este servicio te ofrece apoyo profesional para cualquier trabajo digital que necesites. Nuestro equipo de expertos crea contenido preciso, visualmente atractivo y de alta calidad, siguiendo los más altos estándares. Ideal para profesionales que necesitan materiales impecables para presentaciones importantes o empresas que requieren documentación técnica de calidad."
   },
   {
     id: 3,
     name: "PROYECTOS Y ESTRATEGIAS",
     price: 10,
-    description: "Estudios de impacto, gestión de presupuestos, planificación y estrategias para eventos.",
+    description: "Diseñamos planes estratégicos personalizados para maximizar el éxito de tus proyectos. Nuestras metodologías probadas garantizan resultados óptimos y medibles.",
     features: [
-      "Estudios de impacto",
-      "Gestión de presupuestos",
-      "Planificación y estrategias para eventos"
-    ]
+      "Estudios de impacto y viabilidad",
+      "Gestión profesional de presupuestos",
+      "Planificación estratégica para maximizar resultados"
+    ],
+    details: "Este servicio te proporciona estrategias detalladas para la planificación e implementación exitosa de proyectos. Evaluamos todos los factores relevantes para crear una hoja de ruta clara que maximice tus probabilidades de éxito. Perfecto para empresas que necesitan lanzar nuevos productos o servicios, o individuos con proyectos personales ambiciosos que requieren planificación estructurada."
   },
   {
     id: 4,
     name: "INVESTIGACIONES Y TESINAS",
     price: 15,
-    description: "Desarrollo de proyectos de investigación, análisis y redacción de estudios, elaboración de tesinas, documentos en código LaTeX.",
+    description: "Realizamos investigaciones rigurosas con metodologías científicas. Nuestro equipo de profesionales garantiza documentos bien estructurados y con fundamentos sólidos.",
     features: [
-      "Desarrollo de proyectos de investigación",
-      "Análisis y redacción de estudios",
-      "Elaboración de tesinas",
-      "Documentos en código LaTeX"
-    ]
+      "Desarrollo de proyectos de investigación con metodología rigurosa",
+      "Análisis y redacción de estudios científicos",
+      "Elaboración de tesinas profesionales",
+      "Documentos en código LaTeX con formato académico"
+    ],
+    details: "Este servicio ofrece soporte especializado para trabajos de investigación de alto nivel. Nuestro equipo de profesionales con formación académica avanzada aplica metodologías científicas rigurosas para desarrollar investigaciones completas, bien estructuradas y con conclusiones fundamentadas. Ideal para profesionales que necesitan estudios de mercado detallados o personas que requieren documentación científica de calidad."
   },
   {
     id: 5,
     name: "VISUALIZADORES Y REPORTES",
     price: 9,
-    description: "Comparativas y análisis de tendencias, tableros interactivos y dashboards, gráficos personalizados sin necesidad de programación, visualización de datos analíticos.",
+    description: "Transformamos datos complejos en visualizaciones claras e intuitivas. Nuestros dashboards interactivos permiten ver la información que realmente importa para tomar mejores decisiones.",
     features: [
-      "Comparativas y análisis de tendencias",
-      "Tableros interactivos y dashboards",
+      "Comparativas y análisis de tendencias visuales",
+      "Tableros interactivos y dashboards profesionales",
       "Gráficos personalizados sin necesidad de programación",
-      "Visualización de datos analíticos"
-    ]
+      "Visualización de datos analíticos para toma de decisiones"
+    ],
+    details: "Este servicio transforma tus datos complejos en visualizaciones claras e interactivas que facilitan la comprensión y la toma de decisiones. Nuestras soluciones de visualización te permiten identificar tendencias, patrones y oportunidades que podrían pasar desapercibidas en datos crudos. Perfecto para empresas que necesitan monitorear KPIs o profesionales que quieren presentar información compleja de manera accesible."
   },
   {
     id: 6,
     name: "INFORMES Y DOCUMENTACIÓN",
     price: 7,
-    description: "Evaluaciones de impacto, síntesis y resúmenes de proyectos, revisión y corrección de documentos.",
+    description: "Creamos documentación profesional con estándares internacionales. Nuestros informes están diseñados para comunicar información compleja de manera clara y efectiva.",
     features: [
-      "Evaluaciones de impacto",
-      "Síntesis y resúmenes de proyectos",
-      "Revisión y corrección de documentos"
-    ]
+      "Evaluaciones de impacto detalladas",
+      "Síntesis y resúmenes ejecutivos de proyectos",
+      "Revisión y corrección de documentos técnicos"
+    ],
+    details: "Este servicio ofrece la creación de documentación profesional con los más altos estándares de calidad. Elaboramos informes claros, concisos y estructurados que comunican efectivamente información compleja a cualquier audiencia. Ideal para empresas que necesitan documentación técnica, informes anuales o cualquier tipo de documento que requiera un nivel profesional de presentación y contenido."
   }
 ];
 
@@ -88,8 +94,8 @@ const Servicios = () => {
         <div className="container px-4">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">Nuestros Servicios</h1>
           <p className="text-lg md:max-w-2xl">
-            Conoce todos nuestros servicios académicos digitales diseñados para ayudarte a destacar
-            en tu trayectoria universitaria.
+            Conoce todos nuestros servicios profesionales de análisis y procesamiento de datos
+            diseñados para potenciar tu negocio o proyecto.
           </p>
         </div>
       </section>
@@ -106,6 +112,7 @@ const Servicios = () => {
                 description={service.description}
                 features={service.features}
                 popular={service.popular}
+                details={service.details}
               />
             ))}
           </div>
@@ -118,9 +125,9 @@ const Servicios = () => {
             <div className="md:w-1/2 pr-0 md:pr-8 mb-8 md:mb-0">
               <h2 className="text-2xl font-bold gradient-heading mb-4">Sobre nuestros servicios</h2>
               <p className="mb-4">
-                En DATY, nos comprometemos a proporcionar servicios académicos de alta calidad
-                que te ayuden a alcanzar tus metas educativas. Nuestro equipo está conformado
-                por profesionales con formación académica avanzada en diversas áreas.
+                En DATY, nos comprometemos a proporcionar servicios profesionales de alta calidad
+                que te ayuden a alcanzar tus objetivos. Nuestro equipo está conformado
+                por profesionales con formación avanzada en diversas áreas.
               </p>
               <p className="mb-4">
                 Todos nuestros trabajos incluyen hasta 2 rondas de revisiones sin costo adicional,

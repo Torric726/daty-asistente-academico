@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
@@ -125,12 +124,17 @@ const QuoteForm = () => {
     const selectedService = services.find(s => s.id.toString() === values.servicio);
     const serviceName = selectedService ? selectedService.name : "Servicio desconocido";
     
+    let phoneNumber = values.telefono;
+    if (!phoneNumber.startsWith('+')) {
+      phoneNumber = phoneNumber.startsWith('591') ? `+${phoneNumber}` : `+591${phoneNumber}`;
+    }
+    
     const quoteData = {
       id: quoteId,
       timestamp: Date.now(),
       nombre: values.nombre,
       email: values.email,
-      telefono: values.telefono,
+      telefono: phoneNumber,
       servicio: values.servicio,
       servicioNombre: serviceName,
       dias: values.dias,
@@ -143,25 +147,32 @@ const QuoteForm = () => {
     };
 
     try {
-      await saveQuote(quoteData);
-
       toast({
-        title: "Solicitud enviada",
-        description: `Se ha registrado tu solicitud con ID: ${quoteId}. Te contactaremos pronto con los detalles.`,
+        title: "Procesando solicitud...",
+        description: "Estamos registrando tu cotización, espera un momento.",
       });
+      
+      setTimeout(async () => {
+        await saveQuote(quoteData);
 
-      form.reset({
-        nombre: "",
-        email: "",
-        telefono: "",
-        servicio: "",
-        dias: 7,
-        descripcion: "",
-        moneda: "USD",
-      });
+        toast({
+          title: "Solicitud enviada",
+          description: `Se ha registrado tu solicitud con ID: ${quoteId}. Te contactaremos pronto con los detalles.`,
+        });
 
-      setPriceUSD(null);
-      setDisplayPrice(null);
+        form.reset({
+          nombre: "",
+          email: "",
+          telefono: "",
+          servicio: "",
+          dias: 7,
+          descripcion: "",
+          moneda: "USD",
+        });
+
+        setPriceUSD(null);
+        setDisplayPrice(null);
+      }, 100);
     } catch (error) {
       console.error('Error al guardar la solicitud:', error);
       toast({

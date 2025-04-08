@@ -2,6 +2,8 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import QuoteForm from "@/components/QuoteForm";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { InfoIcon } from "lucide-react";
 
 const Cotizar = () => {
   return (
@@ -20,6 +22,13 @@ const Cotizar = () => {
       <section className="py-16">
         <div className="container px-4">
           <div className="max-w-3xl mx-auto">
+            <Alert className="mb-6 bg-blue-50 border-blue-200">
+              <InfoIcon className="h-5 w-5 text-blue-600" />
+              <AlertDescription>
+                Las cotizaciones son evaluadas por nuestros profesionales. Cualquier descuento será analizado individualmente por el asesor asignado a su proyecto.
+              </AlertDescription>
+            </Alert>
+            
             <QuoteForm />
             
             <div className="mt-12 bg-gray-50 rounded-lg border p-6">

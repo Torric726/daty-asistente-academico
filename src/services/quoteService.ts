@@ -1,5 +1,5 @@
 
-import { collection, getDocs, addDoc, Timestamp, DocumentData } from "firebase/firestore";
+import { collection, getDocs, addDoc, Timestamp, DocumentData, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { CurrencyCode } from "./currencyService";
 
@@ -23,11 +23,14 @@ export interface Quote {
 // Guardar solicitud en Firestore y localStorage
 export const saveQuote = async (quote: Omit<Quote, 'id'>) => {
   try {
-    // Guardar en Firebase 
-    const docRef = await addDoc(collection(db, 'quotes'), {
+    // Optimización: reducir tamaño de datos a guardar
+    const quoteData = {
       ...quote,
       timestamp: Timestamp.fromMillis(quote.timestamp),
-    });
+    };
+    
+    // Guardar en Firebase 
+    const docRef = await addDoc(collection(db, 'quotes'), quoteData);
     
     // Guardar también en localStorage como respaldo
     const quoteWithId = { id: docRef.id, ...quote };
@@ -43,6 +46,44 @@ export const saveQuote = async (quote: Omit<Quote, 'id'>) => {
     saveQuoteToLocalStorage(quoteWithId);
     
     return quoteWithId;
+  }
+};
+
+// Función para actualizar el estado de una cotización
+export const updateQuoteStatus = async (quoteId: string, newStatus: string): Promise<boolean> => {
+  try {
+    // Verificar si es un ID local o de Firebase
+    if (quoteId.startsWith('LOCAL-')) {
+      // Actualizar en localStorage
+      const quotes = getLocalQuotes();
+      const quoteIndex = quotes.findIndex(q => q.id === quoteId);
+      
+      if (quoteIndex !== -1) {
+        quotes[quoteIndex].estado = newStatus;
+        localStorage.setItem('quotes', JSON.stringify(quotes));
+        return true;
+      }
+      return false;
+    } else {
+      // Actualizar en Firebase
+      const quoteRef = doc(db, 'quotes', quoteId);
+      await updateDoc(quoteRef, {
+        estado: newStatus
+      });
+      
+      // También actualizar en localStorage si existe
+      const quotes = getLocalQuotes();
+      const quoteIndex = quotes.findIndex(q => q.id === quoteId);
+      if (quoteIndex !== -1) {
+        quotes[quoteIndex].estado = newStatus;
+        localStorage.setItem('quotes', JSON.stringify(quotes));
+      }
+      
+      return true;
+    }
+  } catch (error) {
+    console.error("Error al actualizar el estado de la cotización:", error);
+    return false;
   }
 };
 
