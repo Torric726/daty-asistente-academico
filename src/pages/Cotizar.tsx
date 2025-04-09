@@ -1,9 +1,22 @@
 
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import QuoteForm from "@/components/QuoteForm";
 
 const Cotizar = () => {
+  const navigate = useNavigate();
+  
+  // Verificar si el usuario está autenticado
+  useEffect(() => {
+    const currentUser = localStorage.getItem("datyCurrentUser");
+    
+    if (!currentUser) {
+      navigate("/registro");
+    }
+  }, [navigate]);
+  
   return (
     <>
       <Navbar />
@@ -30,7 +43,7 @@ const Cotizar = () => {
               </div>
               <h2 className="text-center text-xl font-bold mb-2">Precios personalizados para tu proyecto</h2>
               <p className="text-center text-muted-foreground">
-                Los descuentos y precios finales serán evaluados por el asesor asignado a tu proyecto.
+                Los precios finales y posibles descuentos serán evaluados por el asesor asignado a tu proyecto.
               </p>
             </div>
             

@@ -8,7 +8,7 @@ const services = [
   {
     id: 1,
     name: "ANÁLISIS DE DATOS",
-    price: 50,
+    price: 15,
     description: "Encuestas y análisis, estadísticas descriptivas, análisis y limpieza de bases de datos, visualización de datos y gráficos personalizados, elaboración de reportes y consultas.",
     features: [
       "Encuestas y análisis",
@@ -22,7 +22,7 @@ const services = [
   {
     id: 2,
     name: "TAREAS Y TRABAJOS DIGITALES",
-    price: 40,
+    price: 12,
     description: "Resúmenes y esquemas, presentaciones y diapositivas, creación de formularios digitales, revisión y corrección de trabajos académicos.",
     features: [
       "Resúmenes y esquemas",
@@ -34,7 +34,7 @@ const services = [
   {
     id: 3,
     name: "PROYECTOS Y ESTRATEGIAS",
-    price: 60,
+    price: 20,
     description: "Estudios de impacto, gestión de presupuestos, planificación y estrategias para eventos.",
     features: [
       "Estudios de impacto",
@@ -45,7 +45,7 @@ const services = [
   {
     id: 4,
     name: "INVESTIGACIONES Y TESINAS",
-    price: 70,
+    price: 25,
     description: "Desarrollo de proyectos de investigación, análisis y redacción de estudios, elaboración de tesinas, documentos en código LaTeX.",
     features: [
       "Desarrollo de proyectos de investigación",
@@ -57,7 +57,7 @@ const services = [
   {
     id: 5,
     name: "VISUALIZADORES Y REPORTES",
-    price: 55,
+    price: 18,
     description: "Comparativas y análisis de tendencias, tableros interactivos y dashboards, gráficos personalizados sin necesidad de programación, visualización de datos analíticos.",
     features: [
       "Comparativas y análisis de tendencias",
@@ -69,7 +69,7 @@ const services = [
   {
     id: 6,
     name: "INFORMES Y DOCUMENTACIÓN",
-    price: 45,
+    price: 15,
     description: "Evaluaciones de impacto, síntesis y resúmenes de proyectos, revisión y corrección de documentos.",
     features: [
       "Evaluaciones de impacto",
@@ -88,8 +88,8 @@ const Servicios = () => {
         <div className="container px-4">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">Nuestros Servicios</h1>
           <p className="text-lg md:max-w-2xl">
-            Conoce todos nuestros servicios académicos digitales diseñados para ayudarte a destacar
-            en tu trayectoria universitaria.
+            Conoce todos nuestros servicios profesionales diseñados para ayudarte con tus proyectos
+            y necesidades de datos.
           </p>
         </div>
       </section>
@@ -118,9 +118,9 @@ const Servicios = () => {
             <div className="md:w-1/2 pr-0 md:pr-8 mb-8 md:mb-0">
               <h2 className="text-2xl font-bold gradient-heading mb-4">Sobre nuestros servicios</h2>
               <p className="mb-4">
-                En DATY, nos comprometemos a proporcionar servicios académicos de alta calidad
-                que te ayuden a alcanzar tus metas educativas. Nuestro equipo está conformado
-                por profesionales con formación académica avanzada en diversas áreas.
+                En DATY, nos comprometemos a proporcionar servicios profesionales de alta calidad
+                que te ayuden a alcanzar tus metas y objetivos. Nuestro equipo está conformado
+                por profesionales con formación avanzada en diversas áreas.
               </p>
               <p className="mb-4">
                 Todos nuestros trabajos incluyen hasta 2 rondas de revisiones sin costo adicional,

@@ -31,7 +31,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
       <h3 className="text-xl font-bold">{name}</h3>
       <div className="mt-2 flex items-end">
         <span className="text-3xl font-bold text-daty-600">${price}</span>
-        <span className="text-gray-500 ml-1">/ proyecto</span>
+        <span className="text-gray-500 ml-1">USD</span>
       </div>
       <p className="mt-3 text-muted-foreground">{description}</p>
       
