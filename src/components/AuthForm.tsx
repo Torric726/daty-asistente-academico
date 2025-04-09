@@ -14,52 +14,64 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 
 const userSchema = z.object({
   nombre: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
   email: z.string().email("Email inválido"),
+  role: z.enum(["user", "admin"]),
+  password: z.string().optional(),
 });
 
-const adminSchema = z.object({
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
-});
-
-type UserFormValues = z.infer<typeof userSchema>;
-type AdminFormValues = z.infer<typeof adminSchema>;
+type FormValues = z.infer<typeof userSchema>;
 
 const ADMIN_PASSWORD = "69512310Anacleta";
 
 const AuthForm = () => {
-  const [authType, setAuthType] = useState<"user" | "admin">("user");
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const userForm = useForm<UserFormValues>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(userSchema),
     defaultValues: {
       nombre: "",
       email: "",
-    },
-  });
-  
-  const adminForm = useForm<AdminFormValues>({
-    resolver: zodResolver(adminSchema),
-    defaultValues: {
-      email: "",
+      role: "user",
       password: "",
     },
   });
   
-  const onUserSubmit = (values: UserFormValues) => {
-    // Guardar información del usuario en localStorage
+  const watchRole = form.watch("role");
+  
+  // Show/hide password field based on role selection
+  const handleRoleChange = (value: string) => {
+    if (value === "admin") {
+      setShowAdminPassword(true);
+    } else {
+      setShowAdminPassword(false);
+      form.setValue("password", "");
+    }
+  };
+  
+  const onSubmit = (values: FormValues) => {
+    // Verificar contraseña de administrador si es necesario
+    if (values.role === "admin" && values.password !== ADMIN_PASSWORD) {
+      toast({
+        title: "Error de autenticación",
+        description: "Contraseña de administrador incorrecta.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Crear objeto de usuario/admin
     const userData = {
-      id: `user-${Date.now()}`,
+      id: `${values.role}-${Date.now()}`,
       nombre: values.nombre,
       email: values.email,
-      role: "user",
+      role: values.role,
       createdAt: new Date().toISOString(),
     };
     
@@ -71,140 +83,111 @@ const AuthForm = () => {
     localStorage.setItem("datyUsers", JSON.stringify(existingUsers));
     
     toast({
-      title: "Registro exitoso",
-      description: "Has iniciado sesión como usuario. Ahora puedes realizar cotizaciones.",
+      title: values.role === "admin" ? "Acceso concedido" : "Registro exitoso",
+      description: values.role === "admin" 
+        ? "Has iniciado sesión como administrador." 
+        : "Has iniciado sesión como usuario. Ahora puedes realizar cotizaciones.",
     });
     
-    navigate("/cotizar");
-  };
-  
-  const onAdminSubmit = (values: AdminFormValues) => {
-    // Verificar contraseña de administrador
-    if (values.password !== ADMIN_PASSWORD) {
-      toast({
-        title: "Error de autenticación",
-        description: "Contraseña de administrador incorrecta.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Guardar información del administrador en localStorage
-    const adminData = {
-      id: `admin-${Date.now()}`,
-      email: values.email,
-      role: "admin",
-      createdAt: new Date().toISOString(),
-    };
-    
-    localStorage.setItem("datyCurrentUser", JSON.stringify(adminData));
-    
-    toast({
-      title: "Acceso concedido",
-      description: "Has iniciado sesión como administrador.",
-    });
-    
-    navigate("/admin");
+    navigate(values.role === "admin" ? "/admin" : "/cotizar");
   };
   
   return (
     <div className="max-w-md mx-auto">
-      <Tabs 
-        defaultValue="user" 
-        onValueChange={(value) => setAuthType(value as "user" | "admin")}
-        className="w-full"
-      >
-        <TabsList className="grid grid-cols-2 w-full">
-          <TabsTrigger value="user">Acceso Usuario</TabsTrigger>
-          <TabsTrigger value="admin">Acceso Admin</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="user" className="space-y-4 mt-4">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold">Registro de Usuario</h2>
-            <p className="text-muted-foreground">Regístrate para solicitar cotizaciones</p>
-          </div>
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold">Registro de Cuenta</h2>
+        <p className="text-muted-foreground">Elige tu tipo de cuenta para continuar</p>
+      </div>
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="nombre"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nombre completo</FormLabel>
+                <FormControl>
+                  <Input placeholder="Tu nombre" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           
-          <Form {...userForm}>
-            <form onSubmit={userForm.handleSubmit(onUserSubmit)} className="space-y-4">
-              <FormField
-                control={userForm.control}
-                name="nombre"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre completo</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Tu nombre" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={userForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="tu@email.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <Button type="submit" className="w-full bg-daty-600 hover:bg-daty-700">
-                Registrarse
-              </Button>
-            </form>
-          </Form>
-        </TabsContent>
-        
-        <TabsContent value="admin" className="space-y-4 mt-4">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold">Acceso Administrador</h2>
-            <p className="text-muted-foreground">Ingresa para gestionar cotizaciones</p>
-          </div>
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="tu@email.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           
-          <Form {...adminForm}>
-            <form onSubmit={adminForm.handleSubmit(onAdminSubmit)} className="space-y-4">
-              <FormField
-                control={adminForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="admin@daty.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={adminForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contraseña de administrador</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="********" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <Button type="submit" className="w-full">
-                Ingresar
-              </Button>
-            </form>
-          </Form>
-        </TabsContent>
-      </Tabs>
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>Tipo de cuenta</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      handleRoleChange(value);
+                    }}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="user" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Usuario (solicitar cotizaciones)
+                      </FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="admin" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Administrador (gestionar solicitudes)
+                      </FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {showAdminPassword && (
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contraseña de administrador</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="********" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          
+          <Button type="submit" className="w-full bg-daty-600 hover:bg-daty-700">
+            {watchRole === "admin" ? "Ingresar como Administrador" : "Registrarse como Usuario"}
+          </Button>
+        </form>
+      </Form>
     </div>
   );
 };

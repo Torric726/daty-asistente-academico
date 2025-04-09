@@ -30,8 +30,8 @@ const Registro = () => {
               </div>
               <h2 className="text-center text-xl font-bold mb-2">Acceso a DATY</h2>
               <p className="text-center text-muted-foreground">
-                Si eres usuario, regístrate para poder solicitar cotizaciones. 
-                Si eres administrador, ingresa con tus credenciales.
+                Elige tu tipo de cuenta para continuar. Los usuarios pueden solicitar cotizaciones y 
+                los administradores pueden gestionar solicitudes.
               </p>
             </div>
             
