@@ -13,8 +13,8 @@ const Footer = () => {
               <span className="text-xl font-bold">DATY</span>
             </div>
             <p className="text-gray-300 text-sm">
-              Servicios digitales académicos para estudiantes universitarios. 
-              Soluciones profesionales para tus proyectos y tareas.
+              Servicios digitales profesionales para proyectos y análisis de datos. 
+              Soluciones profesionales para sus necesidades digitales.
             </p>
             <div className="flex mt-4 space-x-4">
               <a href="#" className="text-gray-300 hover:text-white">
@@ -56,7 +56,7 @@ const Footer = () => {
             <h3 className="font-bold text-lg mb-4">Contacto</h3>
             <ul className="space-y-2 text-gray-300">
               <li>contact@daty.com</li>
-              <li>+52 55 1234 5678</li>
+              <li>+591 72012345</li>
               <li>Lunes a Viernes: 9am - 6pm</li>
             </ul>
           </div>

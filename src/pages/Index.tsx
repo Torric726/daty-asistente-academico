@@ -14,7 +14,7 @@ const featuredServices = [
     id: 1,
     name: "ANÁLISIS DE DATOS",
     price: 50,
-    description: "Procesamiento y análisis de datos para proyectos académicos y de investigación.",
+    description: "Procesamiento y análisis de datos para proyectos profesionales y de investigación.",
     features: [
       "Encuestas y análisis",
       "Estadísticas descriptivas",
@@ -27,19 +27,19 @@ const featuredServices = [
     id: 2,
     name: "TAREAS Y TRABAJOS DIGITALES",
     price: 40,
-    description: "Desarrollo de contenido digital para diferentes asignaturas y proyectos.",
+    description: "Desarrollo de contenido digital para diferentes proyectos.",
     features: [
       "Resúmenes y esquemas",
       "Presentaciones y diapositivas",
       "Creación de formularios digitales",
-      "Revisión de trabajos académicos"
+      "Revisión de trabajos profesionales"
     ]
   },
   {
     id: 4,
     name: "INVESTIGACIONES Y TESINAS",
     price: 70,
-    description: "Apoyo en el desarrollo y redacción de proyectos de investigación académica.",
+    description: "Apoyo en el desarrollo y redacción de proyectos de investigación.",
     features: [
       "Desarrollo de proyectos",
       "Análisis y redacción",
@@ -58,8 +58,8 @@ const features = [
   },
   {
     icon: Award,
-    title: "Calidad Académica",
-    description: "Trabajos desarrollados por especialistas con formación académica avanzada."
+    title: "Calidad Profesional",
+    description: "Trabajos desarrollados por especialistas con formación avanzada en cada área."
   },
   {
     icon: CheckCircle,
@@ -77,19 +77,19 @@ const features = [
 const testimonials = [
   {
     name: "María López",
-    role: "Estudiante de Administración",
+    role: "Analista de Datos",
     content: "DATY me ayudó con un proyecto crucial cuando estaba con poco tiempo. El resultado fue excelente y me permitió aprender mucho del proceso.",
     rating: 5
   },
   {
     name: "Carlos Mendoza",
-    role: "Estudiante de Ingeniería",
-    content: "El análisis de datos que me proporcionaron fue fundamental para mi tesis. El equipo es muy profesional y entrega justo lo que se necesita.",
+    role: "Ingeniero de Sistemas",
+    content: "El análisis de datos que me proporcionaron fue fundamental para mi investigación. El equipo es muy profesional y entrega justo lo que se necesita.",
     rating: 5
   },
   {
     name: "Alejandra Ruiz",
-    role: "Estudiante de Psicología",
+    role: "Consultora de Proyectos",
     content: "Excelente servicio y comunicación constante. Me gustó mucho que me explicaron todo el proceso y me mantuvieron informada.",
     rating: 4
   }
@@ -105,10 +105,10 @@ const Index = () => {
         <div className="container px-4 md:flex items-center">
           <div className="md:w-1/2 mb-8 md:mb-0">
             <h1 className="text-3xl md:text-5xl font-bold leading-tight mb-4">
-              Tu Asistente Académico Digital
+              Tu Asistente Digital Profesional
             </h1>
             <p className="text-lg md:text-xl mb-8 md:max-w-md">
-              Servicios académicos profesionales para estudiantes universitarios. Soluciones a la medida para tus proyectos y tareas.
+              Servicios profesionales de análisis y gestión de datos. Soluciones a la medida para tus proyectos.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" asChild className="bg-white text-daty-800 hover:bg-gray-100">
@@ -124,8 +124,8 @@ const Index = () => {
           </div>
           <div className="md:w-1/2 md:pl-8">
             <div className="bg-white/10 backdrop-blur p-6 rounded-lg border border-white/20">
-              <h2 className="text-xl font-bold mb-4">20% de Descuento</h2>
-              <p className="mb-4">En tu primer trabajo con nosotros. Sólo tienes que registrarte y solicitar tu cotización.</p>
+              <h2 className="text-xl font-bold mb-4">Precios Personalizados</h2>
+              <p className="mb-4">Consulta con uno de nuestros asesores para evaluar posibles descuentos según tu proyecto.</p>
               <ul className="space-y-2">
                 <li className="flex items-center">
                   <CheckCircle size={16} className="mr-2 text-green-400" /> Trabajo personalizado
@@ -148,7 +148,7 @@ const Index = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold gradient-heading mb-4">Nuestros Servicios Destacados</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Soluciones académicas digitales para ayudarte a destacar en tu carrera universitaria.
+              Soluciones digitales profesionales para ayudarte a destacar en tus proyectos.
             </p>
           </div>
           
@@ -183,7 +183,7 @@ const Index = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold gradient-heading mb-4">Por qué elegir DATY</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Contamos con un equipo de profesionales dedicados a brindarte el mejor servicio académico.
+              Contamos con un equipo de profesionales dedicados a brindarte el mejor servicio.
             </p>
           </div>
           
@@ -259,7 +259,7 @@ const Index = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold gradient-heading mb-4">Lo que dicen nuestros clientes</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Estudiantes que han confiado en nuestros servicios y han logrado destacar en sus proyectos.
+              Personas que han confiado en nuestros servicios y han logrado destacar en sus proyectos.
             </p>
           </div>
           
@@ -282,7 +282,7 @@ const Index = () => {
         <div className="container px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">¿Listo para comenzar?</h2>
           <p className="text-lg max-w-2xl mx-auto mb-8">
-            Solicita una cotización ahora y obtén un 20% de descuento en tu primer trabajo.
+            Solicita una cotización ahora y obtén una evaluación personalizada de tu proyecto.
           </p>
           <Button size="lg" asChild className="bg-white text-daty-800 hover:bg-gray-100">
             <Link to="/cotizar">Solicitar Cotización Ahora</Link>

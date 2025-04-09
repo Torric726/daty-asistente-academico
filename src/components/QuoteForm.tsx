@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import * as XLSX from 'xlsx';
 
 // Servicios disponibles para selección
 const services = [
@@ -103,12 +104,10 @@ const QuoteForm = () => {
     }
 
     const total = basePrice + urgencyFee;
-    // Aplicar 20% de descuento
     return {
       basePrice,
       urgencyFee,
-      total,
-      discounted: total * 0.8
+      total
     };
   };
 
@@ -116,25 +115,85 @@ const QuoteForm = () => {
   const watchService = form.watch("servicio");
   const watchDias = form.watch("dias");
 
+  // Función para guardar en Excel
+  const saveToExcel = (data: FormValues & { precio: number, fecha: string, id: string }) => {
+    let workbook: XLSX.WorkBook;
+    let worksheet: XLSX.WorkSheet;
+    
+    try {
+      // Intentar cargar el archivo existente si está en localStorage
+      const existingData = localStorage.getItem('datyCotizaciones');
+      
+      if (existingData) {
+        const parsedData = JSON.parse(existingData);
+        parsedData.push(data);
+        localStorage.setItem('datyCotizaciones', JSON.stringify(parsedData));
+        
+        // Crear libro de Excel
+        workbook = XLSX.utils.book_new();
+        worksheet = XLSX.utils.json_to_sheet(parsedData);
+      } else {
+        // Si no existe, crear nuevo
+        const newData = [data];
+        localStorage.setItem('datyCotizaciones', JSON.stringify(newData));
+        
+        workbook = XLSX.utils.book_new();
+        worksheet = XLSX.utils.json_to_sheet(newData);
+      }
+      
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Cotizaciones");
+      
+      // Generar archivo para descargar (solo para desarrollo)
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      
+      // Guardar en localStorage para futuras referencias
+      const url = URL.createObjectURL(blob);
+      localStorage.setItem('datyExcelURL', url);
+      
+      console.log("Datos guardados en Excel:", data);
+      
+    } catch (error) {
+      console.error("Error al guardar en Excel:", error);
+    }
+  };
+
   const onSubmit = (values: FormValues) => {
-    // Aquí se procesaría el formulario, por ahora mostramos un toast
+    // Generar ID único para el trabajo
+    const jobId = `DATY-${Math.floor(1000 + Math.random() * 9000)}`;
+    
+    // Obtener la fecha actual
+    const currentDate = new Date().toISOString();
+    
+    // Calcular precio final
+    const priceDetails = calculatePrice(values.servicio, values.dias);
+    const finalPrice = priceDetails ? priceDetails.total : 0;
+    
+    // Crear objeto completo para guardar
+    const completeData = {
+      ...values,
+      precio: finalPrice,
+      fecha: currentDate,
+      id: jobId,
+    };
+    
+    // Guardar datos en Excel
+    saveToExcel(completeData);
+    
+    // Mostrar toast de confirmación
     toast({
       title: "Cotización enviada",
       description: "Te contactaremos pronto con los detalles de tu cotización.",
     });
-
-    // Simular generación de ID
-    const jobId = `DATY-${Math.floor(1000 + Math.random() * 9000)}`;
     
-    console.log("Formulario enviado:", values);
-    console.log("ID de trabajo generado:", jobId);
+    console.log("Formulario enviado:", completeData);
   };
 
   // Actualizar precio cada vez que cambian servicio o días
   useState(() => {
     if (watchService && watchDias) {
       const priceDetails = calculatePrice(watchService, watchDias);
-      setPrice(priceDetails ? priceDetails.discounted : null);
+      setPrice(priceDetails ? priceDetails.total : null);
     }
   });
 
@@ -177,7 +236,7 @@ const QuoteForm = () => {
               <FormItem>
                 <FormLabel>Teléfono</FormLabel>
                 <FormControl>
-                  <Input placeholder="Tu número telefónico" {...field} />
+                  <Input placeholder="Tu número telefónico con código de país (+591)" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -194,7 +253,7 @@ const QuoteForm = () => {
                   onValueChange={(value) => {
                     field.onChange(value);
                     const priceDetails = calculatePrice(value, watchDias);
-                    setPrice(priceDetails ? priceDetails.discounted : null);
+                    setPrice(priceDetails ? priceDetails.total : null);
                   }} 
                   defaultValue={field.value}
                 >
@@ -232,7 +291,7 @@ const QuoteForm = () => {
                       const value = parseInt(e.target.value);
                       if (value && watchService) {
                         const priceDetails = calculatePrice(watchService, value);
-                        setPrice(priceDetails ? priceDetails.discounted : null);
+                        setPrice(priceDetails ? priceDetails.total : null);
                       }
                     }}
                     {...field}
@@ -273,7 +332,8 @@ const QuoteForm = () => {
         {price && (
           <div className="bg-daty-50 p-4 rounded-md border border-daty-100">
             <h3 className="font-medium text-lg mb-1">Tu cotización:</h3>
-            <p className="text-2xl font-bold text-daty-700">${price.toFixed(2)} <span className="text-sm font-normal text-muted-foreground">(incluye 20% de descuento)</span></p>
+            <p className="text-2xl font-bold text-daty-700">${price.toFixed(2)}</p>
+            <p className="text-sm text-muted-foreground mt-1">*Los posibles descuentos serán evaluados por la persona a cargo de tu proyecto.</p>
           </div>
         )}
 

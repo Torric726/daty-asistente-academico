@@ -28,9 +28,9 @@ const Cotizar = () => {
                   </div>
                 </div>
               </div>
-              <h2 className="text-center text-xl font-bold mb-2">¡20% de Descuento en tu Primer Trabajo!</h2>
+              <h2 className="text-center text-xl font-bold mb-2">Precios personalizados para tu proyecto</h2>
               <p className="text-center text-muted-foreground">
-                Al solicitar tu primera cotización recibirás un 20% de descuento automático en el precio final.
+                Los descuentos y precios finales serán evaluados por el asesor asignado a tu proyecto.
               </p>
             </div>
             
