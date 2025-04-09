@@ -19,7 +19,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import * as XLSX from 'xlsx';
 
-// Servicios disponibles para selección
+// Servicios disponibles para selección con precios actualizados
 const services = [
   {
     id: 1,
@@ -29,27 +29,27 @@ const services = [
   {
     id: 2,
     name: "TAREAS Y TRABAJOS DIGITALES",
-    price: 12,
+    price: 8,
   },
   {
     id: 3,
     name: "PROYECTOS Y ESTRATEGIAS",
-    price: 20,
+    price: 7,
   },
   {
     id: 4,
     name: "INVESTIGACIONES Y TESINAS",
-    price: 25,
+    price: 15,
   },
   {
     id: 5,
     name: "VISUALIZADORES Y REPORTES",
-    price: 18,
+    price: 8,
   },
   {
     id: 6,
     name: "INFORMES Y DOCUMENTACIÓN",
-    price: 15,
+    price: 5,
   }
 ];
 
@@ -134,8 +134,13 @@ const QuoteForm = () => {
   // Función para guardar en Excel
   const saveToExcel = (data: any) => {
     try {
-      // Generar un ID único para la cotización
-      const jobId = `DATY-${Math.floor(1000 + Math.random() * 9000)}`;
+      // Obtener la lista actual de cotizaciones
+      const existingData = JSON.parse(localStorage.getItem('datyCotizaciones') || '[]');
+      
+      // Generar un ID secuencial
+      const nextId = existingData.length > 0 
+        ? Math.max(...existingData.map((item: any) => parseInt(item.id) || 0)) + 1 
+        : 1;
       
       // Obtener fecha actual formateada
       const now = new Date();
@@ -143,7 +148,7 @@ const QuoteForm = () => {
       
       // Crear objeto completo para guardar
       const completeData = {
-        id: jobId,
+        id: nextId.toString(),
         fecha: formattedDate,
         ...data,
         precio_usd: data.precio,
@@ -153,23 +158,15 @@ const QuoteForm = () => {
         estado: "Pendiente",
       };
       
-      // Intentar cargar el archivo existente si está en localStorage
-      const existingData = localStorage.getItem('datyCotizaciones');
-      let allData = [];
-      
-      if (existingData) {
-        allData = JSON.parse(existingData);
-        allData.push(completeData);
-      } else {
-        allData = [completeData];
-      }
+      // Añadir a la lista existente
+      existingData.push(completeData);
       
       // Guardar la información actualizada
-      localStorage.setItem('datyCotizaciones', JSON.stringify(allData));
+      localStorage.setItem('datyCotizaciones', JSON.stringify(existingData));
       
       // Crear libro Excel
       const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(allData);
+      const worksheet = XLSX.utils.json_to_sheet(existingData);
       
       // Dar formato a las columnas (ancho)
       const colWidths = [
@@ -203,7 +200,7 @@ const QuoteForm = () => {
       
       console.log("Datos guardados correctamente:", completeData);
       
-      return jobId;
+      return nextId.toString();
     } catch (error) {
       console.error("Error al guardar en Excel:", error);
       return null;

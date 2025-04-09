@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
-// Información detallada de los servicios
+// Información detallada de los servicios con precios actualizados
 const serviceDetails = [
   {
     id: "1",
@@ -39,7 +39,7 @@ const serviceDetails = [
   {
     id: "2",
     name: "TAREAS Y TRABAJOS DIGITALES",
-    price: 12,
+    price: 8,
     description: "Resúmenes, presentaciones y trabajos digitales de alta calidad.",
     longDescription: "Nuestro equipo de profesionales se encarga de elaborar todo tipo de tareas y trabajos digitales con estándares de calidad profesional. Desde resúmenes concisos hasta presentaciones impactantes, nos aseguramos de que tus entregables destaquen por su precisión, claridad y presentación.",
     features: [
@@ -68,7 +68,7 @@ const serviceDetails = [
   {
     id: "3",
     name: "PROYECTOS Y ESTRATEGIAS",
-    price: 20,
+    price: 7,
     description: "Desarrollo de proyectos y estrategias para impulsar tu negocio o iniciativa.",
     longDescription: "Diseñamos y desarrollamos proyectos a medida y estrategias efectivas para convertir tus ideas en realidades concretas. Nuestro enfoque metodológico y orientado a resultados te ayuda a definir objetivos claros, establecer planes de acción y optimizar recursos para alcanzar el éxito en tus iniciativas.",
     features: [
@@ -97,7 +97,7 @@ const serviceDetails = [
   {
     id: "4",
     name: "INVESTIGACIONES Y TESINAS",
-    price: 25,
+    price: 15,
     description: "Investigaciones académicas y profesionales con rigor metodológico.",
     longDescription: "Realizamos investigaciones detalladas y tesinas con el más alto rigor metodológico y académico. Nuestro equipo de especialistas domina diversas áreas del conocimiento y metodologías de investigación para ofrecerte documentos bien fundamentados, con fuentes confiables y análisis profundos que respalden tus proyectos.",
     features: [
@@ -126,7 +126,7 @@ const serviceDetails = [
   {
     id: "5",
     name: "VISUALIZADORES Y REPORTES",
-    price: 18,
+    price: 8,
     description: "Visualizaciones de datos y reportes interactivos que comunican efectivamente.",
     longDescription: "Transformamos datos complejos en visualizaciones claras e intuitivas que facilitan la comprensión y comunicación de información. Creamos dashboards interactivos, gráficos personalizados y reportes visuales que te permiten identificar patrones, tendencias y relaciones que impulsan mejores decisiones.",
     features: [
@@ -155,7 +155,7 @@ const serviceDetails = [
   {
     id: "6",
     name: "INFORMES Y DOCUMENTACIÓN",
-    price: 15,
+    price: 5,
     description: "Informes profesionales y documentación detallada para tus proyectos.",
     longDescription: "Elaboramos informes y documentación profesional con el nivel de detalle y formalidad que tus proyectos requieren. Desde informes ejecutivos concisos hasta documentación técnica exhaustiva, nos aseguramos de que cada documento cumpla con los más altos estándares de calidad, claridad y precisión.",
     features: [

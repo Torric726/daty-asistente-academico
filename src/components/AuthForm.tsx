@@ -20,7 +20,6 @@ import { useToast } from "@/hooks/use-toast";
 const userSchema = z.object({
   nombre: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
   email: z.string().email("Email inválido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 });
 
 const adminSchema = z.object({
@@ -43,7 +42,6 @@ const AuthForm = () => {
     defaultValues: {
       nombre: "",
       email: "",
-      password: "",
     },
   });
   
@@ -151,20 +149,6 @@ const AuthForm = () => {
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input type="email" placeholder="tu@email.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={userForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contraseña</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="********" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

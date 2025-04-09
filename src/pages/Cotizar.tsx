@@ -1,22 +1,9 @@
 
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import QuoteForm from "@/components/QuoteForm";
 
 const Cotizar = () => {
-  const navigate = useNavigate();
-  
-  // Verificar si el usuario está autenticado
-  useEffect(() => {
-    const currentUser = localStorage.getItem("datyCurrentUser");
-    
-    if (!currentUser) {
-      navigate("/registro");
-    }
-  }, [navigate]);
-  
   return (
     <>
       <Navbar />
