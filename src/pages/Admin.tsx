@@ -44,6 +44,8 @@ interface Quote {
   dias: number;
   descripcion: string;
   precio: number;
+  precio_moneda_seleccionada: string;
+  moneda_seleccionada: string;
   estado: string;
   [key: string]: any; // Para propiedades adicionales
 }
@@ -124,6 +126,10 @@ const Admin = () => {
         { wch: 10 },  // Días
         { wch: 40 },  // Descripción
         { wch: 10 },  // Precio USD
+        { wch: 10 },  // Precio BOB
+        { wch: 10 },  // Precio EUR
+        { wch: 15 },  // Moneda seleccionada
+        { wch: 15 },  // Precio en moneda seleccionada
         { wch: 15 },  // Estado
       ];
       
@@ -227,6 +233,21 @@ const Admin = () => {
                       <h3 className="text-sm font-medium text-muted-foreground">Precio base (USD)</h3>
                       <p className="text-xl font-semibold">${detailView.precio}</p>
                     </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Moneda seleccionada</h3>
+                      <p className="text-lg">{detailView.moneda_seleccionada}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Precio en {detailView.moneda_seleccionada}</h3>
+                      <p className="text-lg">{
+                        detailView.moneda_seleccionada === "USD" ? "$" :
+                        detailView.moneda_seleccionada === "EUR" ? "€" :
+                        detailView.moneda_seleccionada === "GBP" ? "£" :
+                        detailView.moneda_seleccionada === "BOB" ? "Bs. " :
+                        detailView.moneda_seleccionada === "MXN" ? "$ " :
+                        detailView.moneda_seleccionada === "COP" ? "$ " : ""
+                      }{detailView.precio_moneda_seleccionada}</p>
+                    </div>
                     {detailView.precio_bob && (
                       <div>
                         <h3 className="text-sm font-medium text-muted-foreground">Precio en BOB</h3>
@@ -297,7 +318,8 @@ const Admin = () => {
                       <TableHead>Fecha</TableHead>
                       <TableHead>Cliente</TableHead>
                       <TableHead>Servicio</TableHead>
-                      <TableHead>Precio</TableHead>
+                      <TableHead>Precio USD</TableHead>
+                      <TableHead>Moneda</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
@@ -311,6 +333,7 @@ const Admin = () => {
                           <TableCell>{quote.nombre}</TableCell>
                           <TableCell>{quote.servicio_nombre}</TableCell>
                           <TableCell>${quote.precio}</TableCell>
+                          <TableCell>{quote.moneda_seleccionada}</TableCell>
                           <TableCell>
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               quote.estado === "Completado" ? "bg-green-100 text-green-800" :
@@ -347,7 +370,7 @@ const Admin = () => {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                        <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
                           No se encontraron cotizaciones
                         </TableCell>
                       </TableRow>

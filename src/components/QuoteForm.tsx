@@ -220,6 +220,8 @@ const QuoteForm = () => {
       ...values,
       precio: finalPrice,
       servicio_nombre: serviceName,
+      moneda_seleccionada: currency,
+      precio_moneda_seleccionada: convertPrice(finalPrice)
     };
     
     // Guardar datos y obtener ID
@@ -234,6 +236,7 @@ const QuoteForm = () => {
       
       // Resetear formulario
       form.reset();
+      setPrice(null);
     } else {
       toast({
         title: "Error",
@@ -359,7 +362,7 @@ const QuoteForm = () => {
           <div className="md:col-span-2">
             <div className="flex items-center gap-4 mb-2">
               <div className="flex-1">
-                <label className="text-sm font-medium">Moneda</label>
+                <label className="text-sm font-medium">Moneda de pago</label>
                 <Select 
                   defaultValue="USD"
                   onValueChange={(value) => setCurrency(value as keyof typeof exchangeRates)}
@@ -409,7 +412,7 @@ const QuoteForm = () => {
 
         {price && (
           <div className="bg-daty-50 p-4 rounded-md border border-daty-100">
-            <h3 className="font-medium text-lg mb-1">Tu cotización:</h3>
+            <h3 className="font-medium text-lg mb-1">Tu cotización en diferentes monedas:</h3>
             <div className="flex flex-wrap gap-3">
               <div className="bg-white p-2 rounded border">
                 <p className="text-sm text-muted-foreground">USD (Dólar)</p>
@@ -424,7 +427,7 @@ const QuoteForm = () => {
                 <p className="text-xl font-bold text-daty-700">€{(price * exchangeRates.EUR).toFixed(2)}</p>
               </div>
             </div>
-            <div className="mt-2">
+            <div className="mt-4 bg-white p-3 rounded-md border">
               <p className="text-sm text-gray-600 font-medium">Precio a pagar en {currency}:</p>
               <p className="text-2xl font-bold text-daty-700">{
                 currency === "USD" ? "$" :

@@ -1,9 +1,27 @@
 
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import QuoteForm from "@/components/QuoteForm";
 
 const Cotizar = () => {
+  const navigate = useNavigate();
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const currentUser = JSON.parse(localStorage.getItem("datyCurrentUser") || "null");
+    if (!currentUser || currentUser.role !== "user") {
+      navigate("/registro");
+    } else {
+      setIsUserLoggedIn(true);
+    }
+  }, [navigate]);
+
+  if (!isUserLoggedIn) {
+    return null; // No renderizar nada mientras se verifica y redirige
+  }
+
   return (
     <>
       <Navbar />
